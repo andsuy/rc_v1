@@ -1,0 +1,70 @@
+<?php $messages = $this->getUserMessages($this->getRequest()->getParam('uId'));?>
+<?php $prevUser = ''; ?>
+<?php if(count($messages) > 0) { ?>
+<ul class="users_block">
+<?php $c = 0; ?>
+<?php foreach ($messages as $_msg) { ?>
+	<?php $c++; ?>
+	<li class="user_details <?php if($_msg['sender_id'] == $prevUser) { ?> inlineMsg<?php } ?>">
+	<?php if($_msg['sender_id'] != $prevUser) { ?>
+		<div class="user_image">
+		<?php
+		//echo '<pre>'; print_r($_msg); echo '</pre>';
+		$senderName = $this->getUserName($_msg['sender_id']);
+		$senderDetails = Mage::getModel('customer/customer')->load($_msg['sender_id']);
+		$userImage = Mage::helper('customerextend')->getCustomerProfileImage($_msg['sender_id']);
+		if ($userImage != "") {
+			$_imageUrl = Mage::getBaseDir('media') . "/catalog/customer/" . $userImage;
+			$imageResized = Mage::getBaseDir('media') . "/catalog/customer/resz_50_" . $userImage;
+			if(!file_exists($imageResized) && file_exists($_imageUrl)) {
+				$imageObj = new Varien_Image($_imageUrl);
+				$imageObj->constrainOnly(TRUE);
+				$imageObj->keepAspectRatio(TRUE);
+				$imageObj->keepFrame(FALSE);
+				$imageObj->resize(50, 50);
+				$imageObj->save($imageResized);
+			}					
+			echo "<img class='' src='" . Mage::getBaseUrl('media') . "catalog/customer/resz_50_" . $userImage . "' alt='". $senderName ."' /> ";
+		} else {
+			if($senderDetails->getLoginProvider() == 'Facebook' && $senderDetails->getFacebookUserid() != '') {
+            	echo '<img class="" style="max-width:50px; max-height:50px;"  src="https://graph.facebook.com/' . $senderDetails->getFacebookUserid() .'/picture?type=large" alt="'. $senderName .'" />';
+            } else {
+				echo "<img class='' style='max-width:50px; max-height:50px;' src='" . $this->getSkinUrl('images/no_user.jpg') . "' alt='". $senderName ."' /> ";
+            }
+		}
+		?>
+		</div>
+		<?php } ?>
+		<div class="user_msg">
+			<div class="user_msg_top">
+			<?php
+            if(Mage::getStoreConfig('property_section/layout_settings/hide_address')) {
+            	$nameArray = explode(' ', $senderName);
+            	$displayName = $nameArray[0];
+            } else {
+            	$displayName = $senderName;
+            }
+            ?>
+				<?php if($_msg['sender_id'] != $prevUser) { ?>
+				<h2 class="user_name"><a href="<?php echo $this->getUrl('customerextend/index/profile', array('id' => $_msg['sender_id'])) ?>" title="<?php echo $displayName; ?>"><?php echo $displayName; ?></a></h2>
+				<?php } ?>
+				<span class="msg_time"><?php if(date('Ymd') == date('Ymd', strtotime($_msg['created_at']))) { echo date('g:ia', strtotime($_msg['created_at'])); } else {echo date('j-m-Y', strtotime($_msg['created_at']));}?></span>
+				<?php if($_msg['sender_id'] != $prevUser) { ?><div class="clearer"></div><?php } ?>
+			</div>
+			<div class="user_msg_bottom">
+				<?php if($_msg['checkin']) { ?><p class="user_lastmsg with_date"><span class="msg_head">Requested Arrival Date : </span><?php echo date('j-m-Y', strtotime($_msg['checkin'])) ?></p><?php } ?>
+				<?php if($_msg['checkout']) { ?><p class="user_lastmsg"><span class="msg_head">Departure Date : </span><?php echo date('j-m-Y', strtotime($_msg['checkout'])) ?></p><?php } ?>
+				<?php if($_msg['guest']) { ?><p class="user_lastmsg"><span class="msg_head">Guest : </span><?php echo $_msg['guest'] ?></p><?php } ?>
+				<p class="user_lastmsg"><?php echo $_msg['message']; ?></p>
+				<?php if($_msg['timezone']) { $timezone = $_msg['timezone']; } else { $timezone = '';}?>
+				<?php if(isset($_msg['can_call']) && $_msg['contact_number']) { ?><p class="user_lastmsg"><span class="msg_head">Phone : </span><?php echo $_msg['contact_number'] . '&nbsp;&nbsp;' . $timezone ?></p><?php } ?>
+			</div>
+		</div>
+		<div class="clearer"></div>
+	</li>
+	<?php $prevUser = $_msg['sender_id']; ?>
+<?php } ?>
+</ul>
+<?php } else {?>
+	<div class="no-data"><?php echo $this->__('No conversations yet.')?></div>
+<?php } ?>

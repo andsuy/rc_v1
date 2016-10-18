@@ -1,0 +1,22 @@
+<?xml version="1.0"?>   
+<layout version="0.1.0">   
+  <cms_index_index>    
+    <reference name="content">   
+      <block type="addevents/allevents" name="addevents_allevents" after="property.product.info" template="addevents/allevents.phtml">
+	      <block type="addevents/yelp" name="addevents_yelp" before="-" template="addevents/yelp.phtml" />	
+	      <block type="addevents/eventbrite" name="addevents_eventbrite" after="addevents_yelp" template="addevents/eventbrite.phtml" />
+	      <block type="addevents/yelp" name="addevents_yelp_place" after="addevents_eventbrite" template="addevents/yelp_place.phtml" />
+      </block>
+    </reference>
+  </cms_index_index>
+  
+	<catalog_product_view>
+		<reference name="content">   
+	      <block type="addevents/allevents" name="addevents_allevents_product" after="property.product.info" template="addevents/allevents.phtml">
+	      	<block type="addevents/yelp" name="addevents_yelp" before="-" template="addevents/yelp.phtml" />
+	      	<block type="addevents/eventbrite" name="addevents_eventbrite" after="addevents_yelp" template="addevents/eventbrite.phtml" />
+	      	<block type="addevents/yelp" name="addevents_yelp_place" after="addevents_eventbrite" template="addevents/yelp_place.phtml" />
+	      </block>
+	    </reference>
+	</catalog_product_view>
+</layout>

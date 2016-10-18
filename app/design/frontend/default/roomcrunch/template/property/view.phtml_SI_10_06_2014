@@ -1,0 +1,888 @@
+<?php $_helper = $this->helper('catalog/output'); ?>
+<?php $_product = $this->getProduct(); ?>
+<?php
+$_store = Mage::app()->getStore();
+$productId = $_product->getId();
+$currencySymbol = Mage::app()->getLocale()->currency(Mage::app()->getStore()->getCurrentCurrencyCode())->getSymbol();
+$price = $_product->getPriceModel()->getFinalPrice(1, $_product);
+$customer_id = $_product->getUserId();
+$from = "";
+$to = "";
+$from = base64_decode($this->getRequest()->getParam('from'));
+$to = base64_decode($this->getRequest()->getParam('to'));
+
+$lat = '';
+$lnt = '';
+if($_product->getLatitude() != '' && $_product->getLongitude() != '') {
+	$lat = $_product->getLatitude();
+	$lnt = $_product->getLongitude();
+}
+?>
+
+<div id="messages_product_view"><?php echo $this->getMessagesBlock()->getGroupedHtml() ?></div>
+<div id="content_wrapper" class="clearfix">
+    <div id="rooms_grid" class="clearfix">
+        <div id="the_roof">
+        	<div id="back_to_search_container">
+        		
+        		<a id="back_to_search_link" href="<?php echo $this->getUrl('property/search/index') . "?searchTextField=".$_product->getCity()."," .$_product->getCountry(); ?>" ><?php echo $this->__('View Nearby Properties') ?></a>
+        	</div>
+        </div>
+        <!-- Property Head starts -->
+        <div class="middle_roof clearfix">
+            <div id="room_snapshot">
+                <h1><?php echo $this->htmlEscape($_product->getName()) ?></h1>
+                <?php
+                if(Mage::getStoreConfig('property_section/layout_settings/hide_address')) {
+                	$addressArray = explode(' ', $_product->getAddress());
+                	array_shift($addressArray);
+                	//echo '<pre>'; print_r($addressArray); echo '</pre>';               	
+                	$displayAddress = implode(' ', $addressArray);
+                } else {
+                	$displayAddress = $_product->getAddress();
+                }
+                ?>
+                <h3><?php echo str_replace("\n", ', ', $displayAddress); ?> <span id="display_address"><?php echo ", " . $_product->getCountry(); ?></span></h3>
+            </div>
+            <!-- ****** Property Review ****** -->
+            <?php
+            $reviews = Mage::getModel('review/review')->getResourceCollection();
+            $reviews->addStoreFilter(Mage::app()->getStore()->getId())
+                    ->addStatusFilter(Mage_Review_Model_Review::STATUS_APPROVED)
+                    ->addEntityFilter('product', $_product->getId())
+                    ->setDateOrder()
+                    ->addRateVotes();
+            $rating = $this->helper('property')->getCustomerRatings($_product->getId());
+            $totalRating = count($rating);
+            ?>
+            <div id="action_buttons">
+            	<a href='#reviews_link_text' style='color: #3d3f40; margin-left: 5px; font:normal 15px arial;'><?php echo count($reviews) . " " . $this->__('Review(s)')?></a>
+           	<?php
+                $sumRating = 0;
+                foreach ($rating as $rate) {
+                    $sumRating += $rate["percent"];
+                }
+                if($totalRating > 0) {
+	                $avgRating = $sumRating / $totalRating;
+	                if ($avgRating > 1 && $avgRating <= 20) {
+	                    $this->helper('property')->showRatingCode(1);
+	                } else if ($avgRating > 21 && $avgRating <= 40) {
+	                    $this->helper('property')->showRatingCode(2);
+	                } else if ($avgRating > 41 && $avgRating <= 60) {
+	                    $this->helper('property')->showRatingCode(3);
+	                } else if ($avgRating > 61 && $avgRating <= 80) {
+	                    $this->helper('property')->showRatingCode(4);
+	                } else if ($avgRating > 81 && $avgRating <= 100) {
+	                    $this->helper('property')->showRatingCode(5);
+	                } else {
+	                    $this->helper('property')->showRatingCode(0);
+	                }
+                } else {
+                	$this->helper('property')->showRatingCode(0);
+                }
+            ?>
+            </div>
+            <div  class="clearer"></div>
+        </div>
+        <!-- Property Head ends -->
+        <!-- Property Main Container starts -->
+        <div id="rooms">
+			<div id="room" class="clearfix">
+				<div id="content_view">
+					<!-- Property Main Container Left starts -->
+					<div id="left_column">
+						<div id="main_content" class="box">
+							<div class="middle">
+								<ul id="main_content_sub_nav" class="rooms_sub_nav clearfix">
+			                        <li id="menuPropPhotos" class="main_link_property selected">
+			                            <a href="javascript:void(0)" onclick="showPropertyTabs('photos_div', 'menuPropPhotos'); "><?php echo $this->__('Photos'); ?></a>
+			                        </li>
+			                        <li id="menuPropCalender" class="main_link_property">
+			                            <a href="javascript:void(0)" onclick="showPropertyTabs('calendar_div','menuPropCalender')"><?php echo $this->__('Calender'); ?></a>
+			                        </li>
+			                        <li id="menuPropMaps" class="main_link_property">
+			                            <a href="javascript:void(0)" onclick="showPropertyTabs('maps_div','menuPropMaps')"><?php echo $this->__('Maps'); ?></a>
+			                        </li>
+			                    </ul>
+			                    <!-- Property Photos starts -->
+			                    <div id="photos_div" class="main_content_property" style="display: block; ">
+			                        <?php echo $this->getChildHtml('property.product.info.media') ?>
+			                    </div>
+			                    <!-- Property Photos ends -->
+			                    <!-- Property Calender starts -->
+			                    <div id="calendar_div" class="main_content_property" style="display: none;">
+                                        <div class="calenderfloatleft">
+                                            <label style="float:left; padding: 4px;"> <h3 style="font-size: 13px; line-height: 18px; color: #393c3d;"><?php echo $this->__('Select Month') ?>: </h3></label>
+                                            <select name="selectMonth" id="selectMonth" onchange="ajaxLoadCalendar(this.value)">
+                                                    <?php
+                                                    $month = date("n");
+                                                    $year = date("Y");
+                                                    $currentCalender = $month . '__' . $year;
+                                                    for ($j = $year; $j <= ($year + 3); $j++) {
+                                                        for ($k = $month; $k <= 12; $k++) {
+                                                            $loopYear = strtotime("$j/$k/1");
+                                                            $loopmonth = date("M", $loopYear);
+                                                            ?>
+                                                    <option value="<?php echo $k . "__" . $j; ?>"
+                                                            <?php
+                                                            if ($x == $k && $j == $year)
+                                                                echo " selected='selected' "
+                                                                ?>>
+                                                    <?php echo $loopmonth . "," . $j; ?>
+                                                    </option>
+                                                    <?php
+                                                    if ($k == 12) {
+                                                        $month = 1;
+                                                    }
+                                                }
+                                            }
+                                            ?>
+                                        	</select>
+                                        	<div id="calendarWrapper" style="float:left;"></div>
+                                            <div id="cal_legend">
+	                                            <h2 class="past_grid"><?php echo $this->__('Past') ?></h2>
+	                                            <h2 class="available_grid"><?php echo $this->__('Available') ?></h2>
+	                                            <h2 class="booked_grid"><?php echo $this->__('Booked') ?></h2>
+	                                            <h2 class="unavailable_grid"><?php echo $this->__('Not Available') ?></h2>
+	                                        </div>
+                                        </div>
+                                        <div class="calender_left"><p> <?php echo Mage::getStoreConfig('property_section/layout_settings/calender_text'); ?></p></div>
+			                    </div>
+			                    <!-- Property Calender ends -->
+			                    <!-- Property Maps starts -->
+			                    <div id="maps_div" class="main_content_property" style="width:620px; height:500px; display: none;">
+			                    	<div id="mapcontainer" style="width:620px; height:500px;"></div>
+			                    </div>
+			                    <!-- Property Maps ends -->
+			                    <div class="clearer"></div>
+							</div>
+							<div class="clearer"></div>
+							
+							<div id="details" class="box webview">
+                                <div class="middle clearfix">
+                                	<ul id="details_sub_nav" class="rooms_sub_nav clearfix">
+                                        <li id="description_link" onclick="showDetailsTabs('description_div','description_link')" class="details_link selected"><a href="javascript:void(0);"><?php echo $this->__('Description'); ?></a></li>
+                                        <li id="amenities_link" onclick="showDetailsTabs('amenities_div','amenities_link')" class="details_link"><a href="javascript:void(0);"><?php echo $this->__('Amenities'); ?></a></li>
+                                        <li id="house_rules_link" onclick="showDetailsTabs('houserules_div','house_rules_link')" class="details_link"><a href="javascript:void(0);"><?php echo $this->__('House rules') ?></a></li>
+
+                                    </ul>
+                                    
+                                    <!-- Property Details & Description Start -->
+                                        <div id="description_div" class="details_content">
+                                            <div id="description_text">
+                                                <div id="description_text_wrapper" class="trans">
+                                                    <div class="content" style="text-indent: 10px; text-align: justify;">
+                                                        <div class="left left_desc">
+															<?php echo nl2br($_product->getdescription()); ?>
+                                                        </div>
+                                                        <ul id="description_details">
+                                                            <li class="clearfix alt">
+                                                                <span class="property"><?php echo $this->__('Property type') ?> :</span>
+                                                                <span id="room type_val" class="value_description"><?php echo $_product->getAttributeText('property_type'); ?></span>
+                                                            </li>
+                                                            <li class="clearfix ">
+                                                                <span class="property"><?php echo $this->__('Room type') ?>:</span>
+                                                                <span id="bed type_val" class="value_description"><?php echo $_product->getAttributeText('room_type'); ?></span>
+                                                            </li>
+                                                            <li class="clearfix alt">
+                                                                <span class="property"><?php echo $this->__('Property size') ?> :</span>
+                                                                <span id="room type_val" class="value_description"><?php echo $_product->getPropertySize(); ?> square feets</span>
+                                                            </li>
+                                                            <li class="clearfix ">
+                                                                <span class="property"><?php echo $this->__('Accommodates') ?>:</span>
+                                                                <span id="accommodates_val" class="value_description"><?php echo $_product->getAccomodates(); ?></span>
+                                                            </li>
+                                                            <li class="clearfix alt">
+                                                                <span class="property"><?php echo $this->__('Bedrooms') ?>:</span>
+                                                                <span id="bedrooms_val" class="value_description"><?php echo $_product->getRoomsAvailable(); ?></span>
+                                                            </li>
+                                                            <li class="clearfix ">
+                                                                <span class="property"><?php echo $this->__('Bedtype') ?>:</span>
+                                                                <span id="extra people_val" class="value_description"><span id="extra_people_price_string"><?php echo $_product->getAttributeText('bed_type'); ?></span></span>
+                                                            </li>
+                                                            <li class="clearfix alt">
+                                                                <span class="property"><?php echo $this->__('City') ?>:</span>
+                                                                <span id="country_val" class="value_description"><?php echo $_product->getCity(); ?></span>
+                                                            </li>
+                                                            <li class="clearfix">
+                                                                <span class="property"><?php echo $this->__('State') ?>:</span>
+                                                                <span id="country_val" class="value_description"><?php echo $_product->getState(); ?></span>
+                                                            </li>
+                                                            <li class="clearfix alt">
+                                                                <span class="property"><?php echo $this->__('Country') ?>:</span>
+                                                                <span id="country_val" class="value_description"><?php echo $_product->getCountry(); ?></span>
+                                                            </li>
+                                                            <li class="clearfix alt">
+                                                                <span class="property"><?php echo $this->__('Cleaning Fee') ?>:</span>
+                                                                <span id="country_val" class="value_description"><?php echo Mage::app()->getLocale()->currency(Mage::app()->getStore()->getCurrentCurrencyCode())->getSymbol() . Mage::helper('directory')->currencyConvert($_product->getCleaningFee(), Mage::app()->getStore()->getBaseCurrencyCode(), Mage::app()->getStore()->getCurrentCurrencyCode()); ?></span>
+                                                            </li>
+                                                            <li class="clearfix alt">
+                                                                <span class="property"><?php echo $this->__('Extra Fees') ?>:</span>
+                                                                <span id="country_val" class="value_description"><?php echo Mage::app()->getLocale()->currency(Mage::app()->getStore()->getCurrentCurrencyCode())->getSymbol() . Mage::helper('directory')->currencyConvert($_product->getExtraFees(), Mage::app()->getStore()->getBaseCurrencyCode(), Mage::app()->getStore()->getCurrentCurrencyCode()); ?></span>
+                                                            </li>
+                                                            <li class="clearfix alt">
+                                                                <span class="property"><?php echo $this->__('Deposit Amount') ?>:</span>
+                                                                <span id="country_val" class="value_description"><?php echo Mage::app()->getLocale()->currency(Mage::app()->getStore()->getCurrentCurrencyCode())->getSymbol() . Mage::helper('directory')->currencyConvert($_product->getDepositAmount(), Mage::app()->getStore()->getBaseCurrencyCode(), Mage::app()->getStore()->getCurrentCurrencyCode()); ?></span>
+                                                            </li>
+                                                            <li class="clearfix">
+                                                                <span class="property"><?php echo $this->__('Cancellation') ?>:</span>
+                                                                <span id="cancellation_val" class="value_description"><?php echo $_product->getAttributeText('cancellation_policy'); ?></span>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- Property Details & Description End -->
+
+                                        <!-- Amenities existing To Property Start-->
+                                        <div id="amenities_div" style="display: none; padding:10px"  class="details_content">
+                                            <ul class="amenities_list">
+                                            <?php
+                                                $getamenity = explode(',', $_product->getAmenities());
+                                                $amenityId = Mage::helper('property')->getAmenitiesAttrId();
+                                                $amenityAttribute = Mage::getModel('eav/config')->getAttribute('catalog_product', $amenityId);
+                                                $amenityCollection = $amenityAttribute->getSource()->getAllOptions();
+                                                $totalAmenity = count($amenityCollection);
+                                                $x = 1;
+                                                foreach ($amenityCollection as $amenity) {
+                                                    $value = $amenity['value'];
+                                                    if ($value != '') {
+                                                        if ($x == 1)
+                                                            echo "<ul>";
+                                                        if (in_array($amenity['value'], $getamenity)) {
+                                                            ?><li style="padding: 3px 0px;">
+                                                                <img src="<?php echo $this->getSkinUrl('images/Tick_32.png') ?>" style="vertical-align: middle" width="16" height="16">
+                                                                <?php echo $amenity['label']; ?> </li><?php
+                                                            } else {
+                                                                ?><li style="padding: 3px 0px;">
+                                                                <img src="<?php echo $this->getSkinUrl('images/Cross-32.png'); ?>" style="vertical-align: middle" width="16" height="16">
+                                                            <?php echo $amenity['label']; ?>
+                                                            </li> <?php
+			                                            }
+			                                            if ($x % 6 == 0)
+			                                                echo "</ul><ul>";
+			                                            if ($x == $totalAmenity)
+			                                                echo "</ul>";
+			                                            $x++;
+			                                        }
+			                                    }
+                                            ?>
+                                            </ul>
+                                            <div class="clear"></div>
+                                        </div>
+                                        <!-- Amenities existing To Property End-->
+
+                                        <!-- Property Rules Start--> 
+                                        <div id="houserules_div" style="display: none"
+                                             class="details_content">
+                                            <div id="house_rules_text">
+                                                <p><?php echo nl2br($_product->getHouseRule()); ?></p>
+                                            </div>
+                                        </div>
+                                        <!-- Property Rules End-->
+                                </div>
+                            </div>
+                            <!-- Property Reviews Starts -->
+                            <div id="review_details" class="box webview">
+                            	<div class="" id="middle_grid">
+                                    <ul class="rooms_sub_nav rooms_sub_nav_grid clearfix">
+                                        <li id="reviews_links" class="selected"><a href="javascript:void(0);" id="reviews_link_text"><?php echo $this->__('Reviews') ?></a></li>
+                                    </ul>
+                                    <div class="details_content_review" style="display:block!important;">
+                                        <div id="reviews_link_text" >
+                                            <?php
+                                            $reviews = Mage::getModel('review/review')->getResourceCollection();
+                                            $reviews->addStoreFilter(Mage::app()->getStore()->getId())
+                                                    ->addStatusFilter(Mage_Review_Model_Review::STATUS_APPROVED)
+                                                    ->addEntityFilter('product', $_product->getId())
+                                                    ->setDateOrder()
+                                                    ->addRateVotes()
+                                                    ->setPageSize(4)->setCurPage(1)
+                                                    ->load();
+                                            $reviews = $reviews->getData();
+                                            ?>
+                                            <div class="middle_grid_box">
+                                                <div id="main_reviews">
+                                                    <?php
+                                                    //rating form starts
+                                                    if ($totalRating) {
+                                                        $sumRating = 0;
+                                                        foreach ($rating as $rate) {
+                                                            $sumRating += $rate["percent"];
+                                                        }
+                                                        $avgRating = $sumRating / $totalRating;
+                                                        ?>
+                                                        <div class="reviews_bgimg">
+                                                            <span id="satisfaction_title"><?php echo $this->__('Overall Guest Satisfaction') ?></span>
+                                                            <div class="satisfaction_title_review">
+                                                            <?php
+                                                                if ($avgRating > 1 && $avgRating <= 20) {
+												                    $this->helper('property')->showRatingCode(1);
+												                } else if ($avgRating > 21 && $avgRating <= 40) {
+												                    $this->helper('property')->showRatingCode(2);
+												                } else if ($avgRating > 41 && $avgRating <= 60) {
+												                    $this->helper('property')->showRatingCode(3);
+												                } else if ($avgRating > 61 && $avgRating <= 80) {
+												                    $this->helper('property')->showRatingCode(4);
+												                } else if ($avgRating > 81 && $avgRating <= 100) {
+												                    $this->helper('property')->showRatingCode(5);
+												                } else {
+												                    $this->helper('property')->showRatingCode(0);
+												                }
+                                                            ?>
+                                                            </div>
+                                                        </div>
+                                                        <?php
+                                                    }
+                                                    $i = 1;
+                                                    foreach ($rating as $rate) {
+                                                        if ($i == 1)
+                                                            echo "<ul>";
+                                                        echo "<li><span>" . strtoupper($rate["rating_code"]) . "</span><div class='floatleft'>";
+                                                        if ($rate["percent"] > 1 && $rate["percent"] <= 20) {
+                                                            $this->helper('property')->showRatingCode(1);
+                                                        } else if ($rate["percent"] > 21 && $rate["percent"] <= 40) {
+                                                            $this->helper('property')->showRatingCode(2);
+                                                        } else if ($rate["percent"] > 41 && $rate["percent"] <= 60) {
+                                                            $this->helper('property')->showRatingCode(3);
+                                                        } else if ($rate["percent"] > 61 && $rate["percent"] <= 80) {
+                                                            $this->helper('property')->showRatingCode(4);
+                                                        } else if ($rate["percent"] > 81 && $rate["percent"] <= 100) {
+                                                            $this->helper('property')->showRatingCode(5);
+                                                        }
+                                                        echo "</div></li>";
+
+                                                        if ($i % 3 == 0)
+                                                            echo "</ul><ul>";
+                                                        if ($i == count($rating))
+                                                            echo "</ul>";
+                                                        $i++;
+                                                    }
+                                                    //rating form ends
+                                                    ?>
+                                                </div>
+                                                <div class="clear"></div>
+                                                <div class="page-title review-title" id="review_title_grid">
+                                                    <h1><span><?php echo $this->__('Reviews for')." ".$_product->getName(); ?></span></h1>
+                                                </div>
+
+                                                <div id="reviewWrapper">
+                                                    <?php
+                                                    if (count($reviews)) {
+                                                        for ($i = 0; $i < count($reviews); $i++) {
+                                                            $customerImage = Mage::helper('customerextend')->getCustomerProfileImage($reviews[$i]["customer_id"]);
+                                                            ?>
+                                                            <div class="review-product">
+                                                                <ul>
+                                                                    <li class="yourlist_img floatleft">
+                                                                    <?php if(!empty($reviews[$i]["customer_id"])) { ?>
+                                                                        <a href="<?php echo $this->getUrl('customerextend/index/profile', array('id' => $reviews[$i]["customer_id"]))?>">
+                                                                    <?php } else { ?>
+                                                                    	<a href="javascript:void(0)">
+                                                                    <?php } ?>
+                                                                        <?php if (!empty($customerImage)) { ?>
+                                                                            <img src="<?php echo Mage::getBaseUrl('media') . "catalog/customer/resz_50_" . $customerImage ?>" style="width: 63px !important; height: 53px !important" alt="">
+    																	<?php } else { ?>
+                                                                            <img src="<?php echo $this->getSkinUrl('images/no_user.jpg') ?>" style="width: 63px !important; height: 53px !important" alt="">
+																		<?php } ?>
+                                                                        </a>
+                                                                        <ol class="nick_name"><?php echo $reviews[$i]["nickname"]; ?></ol>
+                                                                    </li>
+                                                                    <li class="review_comment_grid">
+                                                                        <div class="review-content bubble">
+    <?php echo '<span style="font-weight:bold;font-size:14px;">"</span>' . nl2br($reviews[$i]["detail"]) . '<span style="font-weight:bold;font-size:14px;">"</span>'; ?>
+<div><?php echo '- ' . $reviews[$i]["nickname"] . ", " . date("jS, F Y", strtotime($reviews[$i]["created_at"])); ?></div>
+                                                                        </div>
+                                                                    </li>
+                                                                </ul>
+                                                            </div>
+                                                            <?php
+                                                        }
+                                                        //getting total count
+                                                        $reviewsTotal = Mage::getModel('review/review')->getResourceCollection();
+                                                        $reviewsTotal->addStoreFilter(Mage::app()->getStore()->getId())
+                                                                ->addStatusFilter(Mage_Review_Model_Review::STATUS_APPROVED)
+                                                                ->addEntityFilter('product', $_product->getId())
+                                                                ->setDateOrder()
+                                                                ->addRateVotes()
+                                                                ->load();
+                                                        $totalRecords = count($reviewsTotal);
+                                                        if ($totalRecords > 4) {
+                                                            for ($page = 1; $page <= ceil($totalRecords / 4); $page++) { ?>
+                                                                 <a class='paginationClass <?php if($page==1) echo "currentpaginationClass"; ?>' href='javascript:void(0);' onclick='getPagination("<?php echo $page ?>","<?php echo $_product->getId()?>")' > <?php echo $page ?></a>
+                                                           <?php } ?>
+                                                            <a class='paginationClass' href="javascript:void(0);" onclick="getPagination('<?php echo ceil($totalRecords / 4); ?>','<?php echo $_product->getId(); ?>')"><?php echo $this->__('Last'); ?></a>
+                                                            <?php
+                                                        }
+                                                    } else {
+                                                        echo $this->__("There are no reviews yet for this property. Be the first to write a review") . "...";
+                                                    }
+                                                    ?>
+                                                </div>
+                                                <div id="paginationLoading"></div>
+                                                <div class="clear"></div>
+                                            </div>
+                                            <div class="clear"></div>
+											<?php echo $this->getLayout()->createBlock('review/form')->toHtml(); ?>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                            <!-- Property Reviews Ends -->
+						</div>
+					</div>
+					<!-- Property Main Container Left ends -->
+					
+					<!-- Booking Price  -->
+                    <div id="right_column">
+                        <div id="book_it" class="box">
+                            <div class="middle">
+                                <div id="book_it_default" class="rounded monthly">
+                                	<div id="pricing" class="book_it_section demo">
+                                        <h2 id="price_amount"><span id="changePrice" >
+                                                <ol><li><?php echo $this->__('From'); ?></li></ol>
+<?php echo $currencySymbol . $_store->roundPrice(Mage::helper('directory')->currencyConvert($price, Mage::app()->getStore()->getBaseCurrencyCode(), Mage::app()->getStore()->getCurrentCurrencyCode()), 0); ?>
+                                        </span></h2>
+                                        <select id="pricePer" style="clear:none;" onchange="changePrice(this.value)" >
+                                            <option value="1"><?php echo $this->__('Per Night') ?></option>
+                                            <option value="2"><?php echo $this->__('Per Week') ?></option>
+                                            <option value="3"><?php echo $this->__('Per Month') ?></option>
+                                        </select>
+                                        <input type="hidden" id="priceVal" value="<?php echo round(Mage::helper('directory')->currencyConvert($price, Mage::app()->getStore()->getBaseCurrencyCode(), Mage::app()->getStore()->getCurrentCurrencyCode()), 0); ?>" />
+                                        <div class="clear"></div>
+                                    </div>
+                                    <script type="text/javascript">
+                                        function changePrice(pVal){
+                                            var price = document.getElementById('priceVal').value;
+                                            var priceVal =  parseInt(price.replace(",","")) ;
+                                            var total=1;
+                                            if(pVal =="1"){
+                                                total =  priceVal ;
+                                            }
+                                            else if(pVal =="2"){
+                                                total =  priceVal * 7;
+                                            }
+                                            else if(pVal =="3"){
+                                                total =  priceVal * 30;
+                                            }
+                                            document.getElementById("changePrice").innerHTML = '<?php echo '<ol><li>' . $this->__('From') . '</li></ol>'; ?> '+'<?php echo $currencySymbol ?>'+total;
+                                        }
+                                    </script>
+                                    <form action="<?php echo $this->getSubmitUrl($_product) ?>" method="post" id="product_addtocart_form"<?php if($_product->getOptions()): ?> enctype="multipart/form-data"<?php endif; ?>>
+								        <?php echo $this->getBlockHtml('formkey') ?>
+								        <div class="no-display">
+								            <input type="hidden" name="product" value="<?php echo $_product->getId() ?>" />
+								        </div>
+								        <!-- ************ property checkout calender section starts ************ -->
+							            <?php
+							            	$accommodate = $_product->getAccomodates();
+							            ?>
+							            <div class="demo book_it_section ">
+							                <div class="select_grid">
+							                    <label for="checkin"><?php echo $this->__('Check in') ?> </label>
+							                    <input type="text" id="from" name="from" autocomplete="off" placeholder="<?php echo $this->__('mm/dd/yyyy');?>" value="<?php echo $from; ?>" />
+							                </div>
+							                <div class="select_grid">
+							                    <label for="to"><?php echo $this->__('Check out') ?></label>
+							                    <input type="text" id="to" name="to" autocomplete="off" placeholder="<?php echo $this->__('mm/dd/yyyy');?>"  value="<?php echo $to; ?>"/>
+							                </div>
+							                <div class="select_grid1">
+							                    <label for="number_of_guests"><?php echo $this->__('Guests') ?> </label>
+							                    <select id="number_of_guests" name="number_of_guests">
+							<?php for ($i = 1; $i <= $accommodate; $i++) { ?>
+							                            <option value="<?php echo $i; ?>"><?php echo $i; ?></option>
+							<?php } ?>
+							                    </select>
+							                </div>
+							                <div class="clear"></div>
+							            </div>
+							            <div id="txtHint"></div>
+                                        <div id="avail">
+                                            <input type="button" class=" pink_grid" value="<?php echo $this->__('Book Now') ?>" onClick="checkavail(from.value,to.value)"/>
+                                        </div>
+                                        <div id="cart" style="display: none">
+                                        <?php $count = 1; ?>
+                                            <a onclick="productAddToCartForm.submit(this)" href='javascript:void(0);' id="scriptbuynow-<?php echo $count; ?>" class="button-glossy booknow_btn"><?php echo $this->__('Book Now') ?></a>
+                                        </div>
+							            <script type="text/javascript">
+							            $j(function() {
+										<?php if ($from != "" && $to != "") { ?>
+										        checkavail($j("#from").val(),$j("#to").val());
+										<?php } ?>
+										        var dates = $j( "#from, #to" ).datepicker({
+										            changeMonth: true,
+										            minDate: '+3D',
+										            numberOfMonths: 1,
+										            onSelect: function( selectedDate ) {
+										                var option = this.id == "from" ? "minDate" : "maxDate",
+										                instance = $j( this ).data( "datepicker" ),
+										                date = $j.datepicker.parseDate(
+										                instance.settings.dateFormat ||
+										                    $j.datepicker._defaults.dateFormat,
+										                selectedDate, instance.settings );
+										                dates.not( this ).datepicker( "option", option, date );
+										                $j("#from" ).datepicker("option","maxDate","");
+										
+										                if(this.id == "from"){
+										                    instance = $j( this ).data( "datepicker" )
+										                    var depart = $j.datepicker.parseDate($j.datepicker._defaults.dateFormat, selectedDate);
+										                    depart.setDate(depart.getDate() + 1);
+										                    $j("#to" ).datepicker(  "option", "minDate", depart );
+										
+										                }
+												        if($j("#from").val()!='' && $j("#to").val()!='') {
+												        	checkavail($j("#from").val(),$j("#to").val());
+												        }
+										            }
+										        });
+										    });
+							            </script>
+							            <!-- ************ property checkout calender section ends ************ --> 
+								    </form>
+								    <div class="clearer"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Booking price section ends -->
+                    
+                    <!-- Host info section starts -->
+                    <div id="right_column" class="mobgrid">
+                        <div id="book_it" class="box">
+                            <div class="middle">
+                            	<div class="profile_pic clearfix">
+                                    <div class="_pm_container">
+                                        <div class="_pm clearfix">
+                                            <div class="_pm_inner clearfix">
+                                            <?php $profilePhoto = Mage::helper('customerextend')->getCustomerProfileImage($customer_id); ?>
+                                            <?php if ($profilePhoto != "") { ?>
+                                                <a href="<?php echo $this->getUrl('customerextend/index/profile', array('id' => $customer_id))?>"><img class='profilephoto' src='<?php echo Mage::getBaseUrl('media') . "catalog/customer/" . $profilePhoto ?>' /></a>
+                                            <?php } else { ?>
+                                                <a href="<?php echo $this->getUrl('customerextend/index/profile', array('id' => $customer_id))?>"><?php echo "<img class='profilephoto' src='" . $this->getSkinUrl('images/no_user.jpg') . "' /> "; ?></a>
+											<?php } ?>
+											</div>
+										</div>
+									</div>
+	                            </div>
+                                <div id="pricing" class="book_it_section">
+									<?php $customer_data = Mage::getModel('customer/customer')->load($customer_id); ?>
+                                    <a href="<?php echo $this->getUrl('customerextend/index/profile', array('id' => $customer_id))?>"><b><?php echo $customer_data->getName(); ?></b></a><br>
+                                    <?php $display_contactme = Mage::getStoreConfig('property_section/layout_settings/display_contactme'); ?>
+                                    <?php if($display_contactme) { ?>
+	                                    <div id="contact_wrapper">
+	                                    <?php if (!Mage::getSingleton('customer/session')->isLoggedIn()) { ?>
+											<a onclick="javascript:alert('Please login first to contact host.')" href="javascript:void(0)" class="button-glossy blue" id="contact_link"><?php echo $this->__('Contact Me'); ?></a>
+										<?php } else { ?>
+											<?php $userId = Mage::getSingleton('customer/session')->getCustomer()->getId(); ?>
+											<?php if($userId == $customer_id) { ?>
+												<a onclick="javascript:alert('You cannot send message to yourself.')" href="javascript:void(0)" class="button-glossy blue" id="contact_link"><?php echo $this->__('Contact Me'); ?></a>
+											<?php } else { ?>
+												<a href="<?php echo $this->getUrl('property/index/contact', array('cid' => $customer_id, 'pid' => $_product->getId()))?>" class="fancybox fancybox.ajax button-glossy blue" id="contact_link"><?php echo $this->__('Contact Me'); ?></a>
+											<?php } ?>
+										<?php } ?>
+	                                    </div>
+                                    <?php } ?>
+                                    <?php $profileData = Mage::helper('customerextend')->getCustomerProfileData($customer_id); ?>
+									<?php if ($profileData->getHostDetails() != '') { ?>
+                                    <div style="color:#1E7EC8;text-align:center;width:100%;margin-top:5px;float:left;cursor:pointer" onclick="slideHost()">
+										<?php echo $this->__('More about the host') ?>
+                                        <img id="moreExpand" alt="expand/hide" title="expand/hide"  src="<?php echo $this->getSkinUrl('images/blue_right.png') ?>" />
+                                    </div>
+                                    <div id="displayMoreHost" style="display: none;" >
+                                        <strong><?php echo $this->__('About:') ?></strong>
+                                    	<?php echo $profileData->getHostDetails(); ?>
+                                    </div>
+                                    <script type="text/javascript">
+                                        var toggle = 1;
+									    function slideHost(){
+									        $j("#displayMoreHost").slideToggle("fast");
+									        if(toggle){
+									            $j("#moreExpand").attr("src","<?php echo Mage::getBaseUrl('skin') . "frontend/default/roomcrunch/images/blue_down.png" ?>");
+									            toggle = 0;
+									        } else {
+									            $j("#moreExpand").attr("src","<?php echo Mage::getBaseUrl('skin') . "frontend/default/roomcrunch/images/blue_right.png" ?>");
+									            toggle = 1;
+									        }
+									    }
+                                    </script>
+								<?php } ?>
+								<?php if ($profileData->getResponseTime() != '') { ?>
+                                    <ul class="host_responsiveness_list clearfix">
+                                        <li class="response_time">
+                                            <span class="icon"></span>
+                                            <span class="span_res">
+                                                <h5><?php echo $profileData->getResponseTime(); ?></h5>
+                                            	<h6><?php echo $this->__('Response Time'); ?></h6>
+                                            </span>
+                                        </li>
+                                    </ul>
+								<?php } ?>
+                                </div>
+                                <div class="clear"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Host info section ends -->
+                    <!-- add to wishlist section starts -->
+                 	<?php 
+                        $wishlistCollection = Mage::getModel('wishlist/item')->getCollection()
+                         				->addFieldToFilter('product_id', $_product->getId());
+                        $wish_count = $wishlistCollection->count();
+                    ?>
+                    <div id="right_column">
+                        <div id="book_it" class="box">
+                            <div class="middle">
+                                <a href="<?php echo $this->helper('wishlist')->getAddUrl($_product) ?>" class="wish_list_button link-cart" >
+                                    <span class="icon"></span>
+                                    <span class="text"><?php echo $this->__('Save to Wish List'); ?></span>
+                                </a>               
+                                <p class="wish_list_button_count"><?php echo $this->__('Saved %d times',$wish_count); ?></p>
+                            </div>
+                            <div class="clear"></div>
+                        </div>
+                    </div>
+                    <!-- add to wishlist section ends -->
+                    
+	                    <?php
+							$_productCollection = Mage::helper('property')->getSimilarLocation($_product->getCity(), $productId);
+							if (count($_productCollection)) {
+					    ?>
+                            <!--  similar listing -->
+                            <div id="right_column">
+                                <div id="book_it" class="box">
+                                    <div id="pricing" class="middle_child" >
+                                        <h1 class="arrowbubble"><?php echo $this->__('Nearby Properties'); ?></h1>
+                                        <ul class="similar-listing-scroll">
+                                            <?php
+                                            foreach ($_productCollection as $_product):
+                                                $smilarity = $this->helper('catalog/image')->init($_product, 'image')
+                                                        ->constrainOnly(TRUE)
+                                                        ->keepAspectRatio(TRUE)
+                                                        ->keepFrame(FALSE)
+                                                        ->resize(91, null);
+                                            ?>
+                                                <li>
+                                                    <div class="related_listing_left left">
+                                                        <a href="<?php echo $_product->getProductUrl(); ?>">
+                                                            <img title="<?php echo $_product->getName(); ?>" alt="<?php echo $_product->getName(); ?>" height="62" width="91" src="<?php if ($_product->getImage()) { echo $smilarity; } else { echo $_product->getImageUrl(); } ?>" />
+                                                        </a>
+                                                    </div>
+                                                    <div class="related_listing_right left">
+                                                        <ul>
+                                                            <li><strong><a href="<?php echo $_product->getProductUrl(); ?>"><?php echo Mage::helper('property')->getPropertyName($_product->getName()); ?></a></strong></li>
+                                                            <?php
+                                                            $_product = Mage::getModel('catalog/product')->load($_product->getId());
+                                                            $price_similar = round(Mage::helper('directory')->currencyConvert($_product->getPrice(), Mage::app()->getStore()->getBaseCurrencyCode(), Mage::app()->getStore()->getCurrentCurrencyCode()), 0);
+                                                            ?>
+                                                            <li><span><?php echo $this->__('Per Night') . " " . $currencySymbol . $price_similar; ?></span><li>
+                                                        </ul>
+                                                    </div>
+                                                </li>
+    										<?php endforeach; ?>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+						<?php } ?>
+	                    <!--  similar listing ends -->
+						<?php
+						$_productCollection = Mage::helper('property')->getSimilarCustomer($customer_id, $productId);
+						if (count($_productCollection)) {
+						?>
+                            <!--  My listing -->
+                            <div id="right_column">
+                                <div id="book_it" class="box">
+                                    <div id="pricing" class="middle_child " >
+                                        <h1 class="arrowbubble"><?php echo $this->__('My listings'); ?></h1>
+                                        <ul  class="similar-listing-scroll">
+                                            <?php
+                                            foreach ($_productCollection as $_product) {
+                                                $homemedium = $this->helper('catalog/image')->init($_product, 'image')
+                                                        ->constrainOnly(TRUE)
+                                                        ->keepAspectRatio(TRUE)
+                                                        ->keepFrame(FALSE)
+                                                        ->resize(91, null);
+                                                ?>
+                                                <li>
+                                                    <div class="related_listing_left left">
+                                                        <a href="<?php echo $_product->getProductUrl(); ?>">
+                                                            <img title="<?php echo $_product->getName(); ?>" alt="<?php echo $_product->getName(); ?>" width="91" height="62" src="<?php if ($_product->getImage()) { echo $homemedium; } else { echo $_product->getImageUrl(); } ?>" />
+                                                        </a>
+                                                    </div>
+                                                    <div class="related_listing_right left">
+                                                        <ul>
+                                                        	<li><strong><a href="<?php echo $_product->getProductUrl(); ?>"><?php echo Mage::helper('property')->getPropertyName($_product->getName()); ?></a></strong></li>
+                                                        	<?php
+                                                            $_product = Mage::getModel('catalog/product')->load($_product->getId());
+                                                            $price_my = round(Mage::helper('directory')->currencyConvert($_product->getPrice(), Mage::app()->getStore()->getBaseCurrencyCode(), Mage::app()->getStore()->getCurrentCurrencyCode()), 0);
+                                                            ?>
+                                                            <li><span><?php echo $this->__('Per Night') . " " . $currencySymbol . $price_my; ?></span></li>
+                                                        </ul>
+
+                                                    </div>
+                                                </li>
+                            				<?php } ?>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+						<?php } ?>
+						<div class="clear"></div>
+                        <!--  My listing ends -->
+                    <!-- -->
+				</div>
+			</div>
+		</div>
+		<!-- Property Main Container ends -->
+		<div class="clearer"></div>
+    </div>
+</div>
+<script type="text/javascript">
+var map;
+function initialize()
+{
+	var myLatlng = new google.maps.LatLng(<?php echo $lat.",".$lnt; ?>);
+	var mapProp = {
+	  center:new google.maps.LatLng(<?php echo $lat.",".$lnt; ?>),
+	  zoom:13,
+	  mapTypeId:google.maps.MapTypeId.ROADMAP
+	};
+	map=new google.maps.Map(document.getElementById("mapcontainer"),mapProp);
+	
+	var marker = new google.maps.Marker({
+	  position: myLatlng,
+	  map: map,
+	  title: '<?php echo $this->htmlEscape($_product->getName()); ?>'
+	});
+}
+google.maps.event.addDomListener(window, 'load', initialize);
+</script>
+<script>
+    var $j = jQuery.noConflict();
+    function showPropertyTabs(id,menuName){
+        $j(".main_content_property").css('display', 'none');
+        $j(".main_link_property").removeClass("selected");
+        $j("#"+menuName).addClass("selected");
+        $j("#"+id).css('display', 'block');
+        google.maps.event.trigger(map, 'resize');
+        map.setCenter(new google.maps.LatLng(<?php echo $lat.",".$lnt; ?>));
+    }
+    function showDetailsTabs(id,menuName){
+        $j(".details_content").css('display', 'none');
+        $j(".details_link").removeClass("selected");
+        $j("#"+menuName).addClass("selected");
+        $j("#"+id).css('display', 'block');
+    }
+</script>
+<script type="text/javascript">
+//<![CDATA[
+function checkavail(fromDate,toDate)
+{        
+    if ($j.trim(fromDate)=="" || $j.trim(fromDate)=="mm/dd/yyyy" )
+    {
+        $j("#from").datepicker("show");
+        document.getElementById("txtHint").innerHTML="";
+        return false;
+    }
+    else if($j.trim(toDate) !="" && $j.trim(toDate)!="mm/dd/yyyy") {
+        document.getElementById("txtHint").innerHTML="<img src='<?php echo $this->getSkinUrl('images/loader.gif') ?>' />";
+        
+        $j.ajax({
+	        async:true,
+	        type: "GET",
+	        data: {from :fromDate, to:toDate, productid:<?php echo $productId; ?>, price:<?php echo $price; ?>},
+	        url: "<?php echo Mage::getBaseUrl() . 'property/search/checkavail' ?>",
+	        success: function(data){
+	        	if(data != 0) {
+	            	$j("#txtHint").html(data);
+	            	document.getElementById("avail").style.display = "none";
+                    document.getElementById("cart").style.display = "block";
+	        	} else {
+	        		$j("#txtHint").html('Dates are not available, please refer to calendar');
+	        		showPropertyTabs('calendar_div','menuPropCalender');
+	        		document.getElementById("avail").style.display = "block";
+                    document.getElementById("cart").style.display = "none";
+                    document.getElementById("txtHint").style.color = "red";
+	        	}
+	        }
+	    });
+    }
+}
+function ajaxLoadCalendar(curCal)
+{
+    document.getElementById("calendarWrapper").innerHTML="<div style='margin:50px 0px 50px 0px;'><img  src='<?php echo $this->getSkinUrl('images/calendar-loader.gif') ?>' /></div>";
+    $j.ajax({
+        async:true,
+        type: "GET",
+        data: {date :curCal, productid:'<?php echo $productId ?>'},
+        url: "<?php echo $this->getUrl('property/search/calender') ?>",
+        success: function(data){
+        	if(data != 0) {
+            	document.getElementById("calendarWrapper").innerHTML = data;
+        	}
+        }
+    });
+}
+$j(document).ready(function() {
+	ajaxLoadCalendar('<?php echo $currentCalender ?>');
+
+	$j('.fancybox').fancybox();
+});
+
+//]]>
+</script>
+<script type="text/javascript">
+//<![CDATA[
+    var productAddToCartForm = new VarienForm('product_addtocart_form');
+    productAddToCartForm.submit = function(button, url) {
+        if (this.validator.validate()) {
+            var form = this.form;
+            var oldUrl = form.action;
+
+            if (url) {
+               form.action = url;
+            }
+            var e = null;
+            try {
+                this.form.submit();
+            } catch (e) {
+            }
+            this.form.action = oldUrl;
+            if (e) {
+                throw e;
+            }
+
+            if (button && button != 'undefined') {
+                button.disabled = true;
+            }
+        }
+    }.bind(productAddToCartForm);
+
+    productAddToCartForm.submitLight = function(button, url){
+        if(this.validator) {
+            var nv = Validation.methods;
+            delete Validation.methods['required-entry'];
+            delete Validation.methods['validate-one-required'];
+            delete Validation.methods['validate-one-required-by-name'];
+            // Remove custom datetime validators
+            for (var methodName in Validation.methods) {
+                if (methodName.match(/^validate-datetime-.*/i)) {
+                    delete Validation.methods[methodName];
+                }
+            }
+
+            if (this.validator.validate()) {
+                if (url) {
+                    this.form.action = url;
+                }
+                this.form.submit();
+            }
+            Object.extend(Validation.methods, nv);
+        }
+    }.bind(productAddToCartForm);
+//]]>
+</script>
+<!-- ******* Property section ends ******** -->

@@ -1,0 +1,147 @@
+<?php
+$count = 1;
+$threeDiv = 1;
+$model = Mage::getModel('catalog/product');
+$baseurl = Mage::getBaseUrl('skin');
+
+$_productCollection = Mage::getModel('property/property')->getPropertyCollection()
+		->addAttributeToFilter('status', array('eq' => 1))
+		->addAttributeToFilter('property_approved',array('eq' => 1))
+		->setPageSize(10)
+		->setOrder('created_at', 'desc')
+		->addAttributeToSelect('*');
+$currencySymbol = Mage::app()->getLocale()->currency(Mage::app()->getStore()->getCurrentCurrencyCode())->getSymbol();
+
+if(count($_productCollection) > 0){
+?>
+	<ul>
+		<?php
+		foreach($_productCollection as $product){
+			$customerImage = Mage::helper('customerextend')->getCustomerProfileImage($product->getUserId());
+			$customer = Mage::getModel('customer/customer')->load($product->getUserId());
+			if($threeDiv <= 3){
+		?> 
+	    <?php
+	    $popularpdct=$this->helper('catalog/image')->init($product, 'image')
+			    ->constrainOnly(TRUE)
+			    ->keepAspectRatio(TRUE)
+			    ->keepFrame(FALSE)
+			    ->resize(263,null);
+        ?>
+		    <li class="res_list home-small-dealbox<?php echo $threeDiv ?>">
+		    <div class="popular-wishlist clearfix">
+		    <div class="row-wishlists-list clearfix">
+		            <div class="wishlists-list-item space_list">
+		                <a href="<?php echo $this->helper('wishlist')->getAddUrl($product) ?>" class="wish_list_button link-cart" title="Save this listing to review later"><span class="icon"></span></a>
+		                <a href="<?php echo $product->getProductUrl(); ?>" class="matte-media-box">
+		                    <img src="<?php if($product->getImage() != 'no_selection') { echo $popularpdct; } else { echo $product->getImageUrl(); }?>" width="250" height="149" alt="<?php echo Mage::helper('property')->getPropertyName($product->getName()); ?>" title="<?php echo Mage::helper('property')->getPropertyName($product->getName()); ?>" />
+		                </a>
+		                <div class="feed_item_device_view">
+		                    <div class="floatleft">
+		                        <a href="<?php echo $product->getProductUrl(); ?>" >
+		                            <span class="h4"><?php echo Mage::helper('property')->getPropertyName($product->getName()); ?></span>
+		                        	<span><?php echo $product->getState().','. $product->getCountry(); ?></span>
+		                        </a>
+		                    </div>
+		                    <div class="popular_price">
+		                        <a href="<?php echo $product->getProductUrl(); ?>" >
+			                        <span class="price-tag-price">
+			                         <?php echo $currencySymbol . round(Mage::helper('directory')->currencyConvert($product->getFinalPrice(), Mage::app()->getStore()->getBaseCurrencyCode(), Mage::app()->getStore()->getCurrentCurrencyCode()), 0); ?>
+			                        </span>
+			                        <span class="price-tag-price-pernight"><?php echo $this->__('Per Night'); ?></span>
+		                        </a>
+		                    </div>
+		                </div>
+		               
+		                <div class="info_card clearfix">
+		                    <div class="floatleft">
+		                        <a href="<?php echo $this->getUrl('customerextend/index/profile', array('id' => $customer->getId()))?>" class="matte-media-box-small">
+		                            <?php if (!empty($customerImage)) { ?>   
+		                                <img src="<?php echo Mage::getBaseUrl('media') . "catalog/customer/resz_50_" . $customerImage ?>" height="38" alt="<?php echo Mage::helper('property')->getPropertyName($product->getName()); ?>" title="">
+		                            <?php } else { ?>
+		                                <img src="<?php echo $this->getSkinUrl('images/no_user.jpg'); ?>" height="38"  alt="<?php echo Mage::helper('property')->getPropertyName($product->getName()); ?>" title="">
+		                            <?php } ?>
+		                        </a>
+		                    </div>
+                <?php
+                if(Mage::getStoreConfig('property_section/layout_settings/hide_address')) {
+                	$nameArray = explode(' ', $customer->getName());
+                	$displayName = $nameArray[0];
+                } else {
+                	$displayName = $customer->getName();
+                }
+                ?>
+		                    <div class="span1">
+		                        <h4><a href="<?php echo $product->getProductUrl(); ?>" style="text-decoration: none;"><?php echo Mage::helper('property')->getPropertyName($product->getName()); ?></a></h4>
+		                        <a style="text-decoration: none;" href="<?php echo $this->getUrl('customerextend/index/profile', array('id' => $customer->getId()))?>" ><span><?php echo $displayName; ?></span></a>
+		                    </div>
+		                </div>
+		            </div>
+		        </div>
+		</div>
+		    </li>
+		<?php 
+		if($threeDiv == 3 ) {
+			echo  '<li class="clear"></li>';
+			$twoDiv = 1;
+		}
+		$threeDiv = $threeDiv + 1;
+		} else { ?>
+		
+		<?php if($twoDiv <= 2) { ?>
+		<li class="res_list home-medium-dealbox<?php echo $twoDiv ?>">
+		<div class="popular_2up_listings_view">
+		    <div class="row2-wishlists-list clearfix">
+		        <div class="wishlists2-list-item twospace_list">
+		             <?php
+		             $homemedium=$this->helper('catalog/image')->init($product, 'image')
+				             ->constrainOnly(TRUE)
+				             ->keepAspectRatio(TRUE)
+				             ->keepFrame(FALSE)
+				             ->resize(460,null);
+	                 ?>
+		            <a href="<?php echo $this->helper('wishlist')->getAddUrl($product) ?>" class="wish_list_button link-cart" title="Save this listing to review later"><span class="icon"></span></a>
+					<!--<a href="<?php echo $this->helper('wishlist')->getAddUrl($product) ?>" class="link-cart" ><?php echo $this->__('Add to Wishlist') ?></a>-->
+		            <a href="<?php echo $product->getProductUrl(); ?>" class="matte2-media-box">
+		                <img alt="<?php echo Mage::helper('property')->getPropertyName($product->getName()); ?>" src="<?php if ($product->getImage() != 'no_selection') { echo $homemedium; } else { echo $product->getImageUrl(); }?>" width ="460" height="255" title="<?php echo Mage::helper('property')->getPropertyName($product->getName()); ?>">
+		            </a>
+		            <div class="feed_item_view">
+	                    <div class="floatleft">
+	                        <a href="<?php echo Mage::getBaseUrl() . $product->getUrlPath(); ?>" >
+	                            <span class="h4"><?php echo Mage::helper('property')->getPropertyName($product->getName()); ?></span>
+	                        <span><?php echo $product->getState().','. $product->getCountry(); ?></span></a> 
+	                    </div>
+	                    <div class="popular_price">
+	                        <a href="<?php echo $product->getProductUrl(); ?>" >
+	                        <span class="price-tag-price">
+	                         <?php echo $currencySymbol . round(Mage::helper('directory')->currencyConvert($product->getFinalPrice(), Mage::app()->getStore()->getBaseCurrencyCode(), Mage::app()->getStore()->getCurrentCurrencyCode()), 0);?>
+	                        </span>
+	                        <span class="price-tag-price-pernight"><?php echo $this->__('Per Night'); ?></span>
+	                        </a>
+	                    </div>
+	                </div>
+		        </div>
+			</div>
+		</div>
+		</li>
+		<?php
+		if($twoDiv == 2){
+			echo '<li class="clear"></li>';
+			$threeDiv = 1;
+		}
+		$twoDiv = $twoDiv + 1;
+		}
+		}
+		?>     
+		<?php 
+		if($count == 10) {
+			break;
+		}
+		$count = $count+1;
+		}
+} else {
+	echo '<div class="emty_grid" style="height: 221px;">' . $this->__('No Records!') . '</div>';
+}
+?>
+	</ul>
+<div class="clear"></div>

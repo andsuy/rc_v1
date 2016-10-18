@@ -1,0 +1,138 @@
+<?xml version="1.0"?>
+<config>
+  <modules>
+    <Si_Customerextend>
+      <version>0.1.0</version>
+    </Si_Customerextend>
+  </modules>
+  <frontend>
+    <routers>
+      <customerextend>
+        <use>standard</use>
+          <args>
+            <module>Si_Customerextend</module>
+            <frontName>customerextend</frontName>
+          </args>
+      </customerextend>
+    </routers>
+		<layout>
+		  <updates>
+			<customerextend>
+			  <file>customerextend.xml</file>
+			</customerextend>
+		  </updates>
+		</layout>
+  </frontend>
+  <global>
+    <helpers>
+      <customerextend>
+        <class>Si_Customerextend_Helper</class>
+      </customerextend>
+    </helpers>
+	<blocks>
+	  <customerextend>
+		<class>Si_Customerextend_Block</class>
+	  </customerextend>
+	</blocks>
+	<models>
+	  <customerextend>
+		<class>Si_Customerextend_Model</class>
+		<resourceModel>customerextend_mysql4</resourceModel>
+	  </customerextend>
+	  <customerextend_mysql4>
+		<class>Si_Customerextend_Model_Mysql4</class>
+		<entities>		  
+			  <customerinfo>
+				<table>property_customer_info</table>
+			  </customerinfo>		  
+			  <cuspropmsg>
+				<table>property_message</table>
+			  </cuspropmsg>		  
+        </entities>
+	  </customerextend_mysql4>
+	</models>
+	<resources>
+	  <customerextend_setup>
+		<setup>
+		  <module>Si_Customerextend</module>
+		</setup>
+		<connection>
+		  <use>core_setup</use>
+		</connection>
+	  </customerextend_setup>
+	  <customerextend_write>
+		<connection>
+		  <use>core_write</use>
+		</connection>
+	  </customerextend_write>
+	  <customerextend_read>
+		<connection>
+		  <use>core_read</use>
+		</connection>
+	  </customerextend_read>
+	</resources>
+  </global>
+  <admin>
+	<routers>
+	  <customerextend>
+	    <use>admin</use>
+		<args>
+		  <module>Si_Customerextend</module>
+		  <frontName>customerextend</frontName>
+		</args>
+	  </customerextend>
+	</routers>
+  </admin>
+  <adminhtml>
+	<!--<menu>
+	  <customerextend module="customerextend">
+		<title>Customerextend</title>
+		<sort_order>100</sort_order>
+		<children>
+		  <customerinfo module="customerextend">
+		    <title>Manage Customerinfo</title>
+			<sort_order>0</sort_order>
+			<action>customerextend/adminhtml_customerinfo</action>
+		  </customerinfo>
+		  <cuspropmsg module="customerextend">
+		    <title>Manage Cuspropmsg</title>
+			<sort_order>10</sort_order>
+			<action>customerextend/adminhtml_cuspropmsg</action>
+		  </cuspropmsg>
+		</children>
+	  </customerextend>
+	</menu>-->
+	<acl>
+	  <resources>
+		<all>
+		  <title>Allow Everything</title>
+		</all>
+		<!--<admin>
+		  <children>
+			<customerextend translate="title" module="customerextend">
+			  <title>Customerextend</title>
+			  <sort_order>1000</sort_order>
+			  <children>
+				  <customerinfo translate="title">
+					<title>Manage Customerinfo</title>
+					<sort_order>0</sort_order>
+				  </customerinfo>
+				  <cuspropmsg translate="title">
+					<title>Manage Cuspropmsg</title>
+					<sort_order>10</sort_order>
+				  </cuspropmsg>
+			  </children>
+			</customerextend>
+		  </children>
+		</admin>-->
+	  </resources>
+	</acl>
+	<layout>
+	  <updates>
+		<customerextend>
+		  <file>customerextend.xml</file>
+		</customerextend>
+	  </updates>
+	</layout>
+  </adminhtml>
+</config> 

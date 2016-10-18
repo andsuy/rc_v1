@@ -1,0 +1,206 @@
+<?php
+class Si_Property_Model_Property extends Mage_Core_Model_Abstract
+{
+    /* Get Property Collection */
+    public function getPropertyCollection() {
+        $propertyCollection = Mage::getModel('catalog/product')->getCollection()
+                ->addAttributeToFilter('type_id', array('eq' => 'virtual'))
+                ->addAttributeToFilter('attribute_set_id', array('eq' => 9));
+                //->addAttributeToFilter('status', array('eq' => 1));
+        return $propertyCollection;
+    }
+    
+    public function advanceSearch($data) {
+        $state = "";
+        $city = "";
+        $country = "";
+        $address = explode(",", $data["address"]);
+        $amount = explode("-", $data["amount"]);
+        $upperLimit = $data["upperLimitPrice"];
+        $minval = $amount[0];
+        $maxval = $amount[1];
+        $add_count= count($address);
+        if ($data["checkin"] != "") {
+            $fromdate = date("Y-m-d", strtotime($data["checkin"]));
+        }
+        if ($data["checkout"] != "") {
+            //$todate = date("Y-m-d", strtotime($data["checkout"]));
+            $todateVal = date("Y-m-d", strtotime($data["checkout"]));
+            $dateArr = explode("-", $todateVal);
+            $todate = date('Y-m-d', mktime(0, 0, 0, $dateArr[1], $dateArr[2] + 1, $dateArr[0]));
+        }
+        
+        if($data["address"] != '') {
+        	$lat = '';
+			$lnt = '';
+			try {
+				$q = $data["address"];
+				$q = str_replace(" ", "+", $q);
+				$geocodeURL = "http://maps.googleapis.com/maps/api/geocode/json?address=$q&sensor=false";
+				$ch = curl_init($geocodeURL);
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+				$result = curl_exec($ch);
+				$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+				curl_close($ch);
+				if ($httpCode == 200) {
+				  $geocode = json_decode($result);
+				  $lat = $geocode->results[0]->geometry->location->lat;
+				  $lnt = $geocode->results[0]->geometry->location->lng;
+				  //echo 'Lat=' . $lat . ' || Lnt='. $lnt; exit;
+				  $formatted_address = $geocode->results[0]->formatted_address;
+				  $geo_status = $geocode->status;
+				  $location_type = $geocode->results[0]->geometry->location_type;
+				} else {
+				 $geo_status = "HTTP_FAIL_$httpCode";
+				}
+			} catch (Exception $ex) {
+			}
+        
+			$resource = Mage::getSingleton('core/resource');
+			$readConnection = $resource->getConnection('core_read');
+			$table = $resource->getTableName('property/propertylocation');
+			$query = "SELECT product_id, ( 3959 * acos( cos( radians(". $lat .") ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(". $lnt .") ) + sin( radians(". $lat .") ) * sin( radians( latitude ) ) ) ) AS distance FROM ".$table." HAVING distance < 20 ORDER BY distance";
+			//echo $query; exit;
+			$results = $readConnection->fetchAll($query);
+			$propertyIds = array();
+			if(count($results) > 0) {
+				foreach($results as $_res) {
+					$propertyIds[] = $_res['product_id'];
+				}
+			}
+			//echo '<pre>'; print_r($results); echo '</pre>'; exit;
+        }
+
+			
+        $collection = Mage::getModel('catalog/product')->getCollection()->addAttributeToSelect('*');
+        $collection->addFieldToFilter(array(array('attribute' => 'status', 'eq' => '1')));
+
+        $collection->addFieldToFilter(array(array('attribute' => 'property_approved', 'eq' => '1')));
+        $collection->addFieldToFilter('price', array('gteq' => $minval));
+        $collection->setOrder('price', 'asc');
+
+        $collection->addFieldToFilter('price', array('lteq' => $maxval));
+
+        /*if (count($address) == 3) {
+            $collection->addFieldToFilter(array(array('attribute' => 'city', 'in' => $address),
+                array('attribute' => 'state', 'in' => $address),
+                array('attribute' => 'country', 'in' => $address),
+                array('attribute' => 'address', 'in' => $address),
+            ));
+        } else if (count($address) == 2) {
+            $collection->addFieldToFilter(array(array('attribute' => 'city', 'in' => $address),
+                array('attribute' => 'state', 'in' => $address),
+                array('attribute' => 'country', 'in' => $address),
+                array('attribute' => 'address', 'in' => $address),
+            ));
+        } else if ($add_count== 1) {
+            $addressValue = $address[0];
+            $collection->addFieldToFilter(array(array('attribute' => 'city', 'like' => "%" . $addressValue . "%"),
+                array('attribute' => 'state', 'like' => "%" . $addressValue . "%"),
+                array('attribute' => 'country', 'like' => "%" . $addressValue . "%"),
+                array('attribute' => 'address', 'like' => "%" . $addressValue . "%"),
+            ));
+        }*/
+        
+        
+        /*if(count($address) > 0) {
+        	foreach($address as $_address) {
+        		$collection->addFieldToFilter('search_keywords', array('like' => "%" . trim($_address) . "%"));
+        	}
+        }*/
+        //echo $collection->getSelect(); exit;
+        if($data["address"] != '') {
+        	if(!empty($propertyIds)) {
+        		$collection->addFieldToFilter('entity_id',array('in'=>$propertyIds));
+        	} else {
+	        	foreach($address as $_address) {
+	        		$collection->addFieldToFilter('search_keywords', array('like' => "%" . trim($_address) . "%"));
+	        	}        	
+        	}
+        }
+        
+        if (trim($data["roomtypeval"]) != "") {
+            $data["roomtypeval"] = explode(",", $data["roomtypeval"]);
+            if (count($data["roomtypeval"]) > 0) {
+                $collection->addFieldToFilter('property_type', array('in' => array($data["roomtypeval"])));
+            }
+        }
+        if (trim($data["amenityVal"]) != "") {
+            if (count($data["amenityVal"]) > 0) {
+                $collection->addAttributeToFilter('amenities', array('like' => '%' . $data["amenityVal"] . '%'));
+            }
+        }
+        
+        if (trim($data["ratingVal"]) != "") {
+        	$data["ratingVal"] = explode(",", $data["ratingVal"]);
+        	if (count($data["ratingVal"]) > 0) {
+	        	$up = 0;
+	        	$low = 101;
+	        	foreach($data["ratingVal"] as $_rat){
+	        		if($_rat == 1) {
+	        			if($low > 0) { $low = 0;}
+	        			if($up < 30) { $up = 30;}
+	        		} elseif($_rat == 2) {
+	        			if($low > 30) { $low = 30;}
+	        			if($up < 50) { $up = 50;}
+	        		} elseif($_rat == 3) {
+	        			if($low > 50) { $low = 50;}
+	        			if($up < 70) { $up = 70;}
+	        		} elseif($_rat == 4) {
+	        			if($low > 70) { $low = 70;}
+	        			if($up < 90) { $up = 90;}
+	        		} elseif($_rat == 5) {
+	        			if($low > 90) { $low = 90;}
+	        			if($up < 101) { $up = 101;}
+	        		}
+	        	}
+	        	
+	        	$collection->getSelect()->where('SELECT AVG(percent_approved) as average_rating FROM rating_option_vote_aggregated WHERE  entity_pk_value = e.entity_id GROUP BY entity_pk_value having AVG(percent_approved) >= '. $low .' and AVG(percent_approved) < '. $up .'');
+        		//echo $collection->getSelect(); exit;
+        	}
+        }
+        
+        if (trim($data["keywordsVal"]) != "") {
+        	$data["keywordsVal"] = explode(",", $data["keywordsVal"]);
+            if (count($data["keywordsVal"]) > 0) {
+            	$filterOptions = array();
+            	foreach($data["keywordsVal"] as $_key){
+            		$filterOptions[] = array(
+							        'attribute' => 'keywords',
+							        'like'      => '%' . trim($_key) . '%',
+							        );
+            	}
+
+            	$collection->addAttributeToFilter($filterOptions);
+            }
+        }
+        
+        if ($data["searchguest"] > 0) {
+            $collection->addAttributeToFilter('accomodates',array('gteq' => $data["searchguest"]) );
+        }
+            
+            
+        $productFilter = array();
+        $count = 0;
+
+        if ($fromdate && $todate) {
+            if (count($copycollection)) {
+                foreach ($copycollection as $_product) {
+                    $availresult = (int) $this->checkAvailableProduct($_product->getId(), $fromdate, $todate);
+                    $availresult1 = (int) $this->checkavalidateincal($_product->getId(), $fromdate, $todate);
+                    if (!$availresult || !$availresult1) {
+                        $productFilter[$count] = $_product->getId();
+                        $count++;
+                    }
+                }
+            }
+        }
+
+        if (count($productFilter))
+            $collection->addFieldToFilter('entity_id', array('nin' => $productFilter));
+
+        $collection->setPage($data["pageno"], 10);
+        
+        return $collection;
+    }
+}

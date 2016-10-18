@@ -1,0 +1,243 @@
+<div id="wrapper">
+	<div id="proslider">
+	<?php if(Mage::getStoreConfig('property_section/custom_banner/static_banner')) { ?>
+		<ul class="rslides rslides1">
+			<li>
+				<a class="ss_name" href="javascript:void(0)">
+					<img style="max-height:60%;" src="<?php echo Mage::getBaseUrl('media') . 'catalog/product/banner/' . Mage::getStoreConfig('property_section/custom_banner/main_banner_image'); ?>" alt="" title="" class="sliderimg">
+				</a>
+			</li>
+		</ul>
+	<?php } else { ?>
+        <?php
+        $_productCollection = $this->getHomepagePropertyBanner();
+        $currencySymbol = Mage::app()->getLocale()->currency(Mage::app()->getStore()->getCurrentCurrencyCode())->getSymbol();
+        if (!empty($_productCollection) && count($_productCollection)) {
+        ?>
+            <ul class="rslides rslides1">
+                <?php foreach ($_productCollection as $_product) { ?>
+                <li>
+                	<a class="ss_name" href="<?php echo Mage::getBaseUrl() . $_product->getUrlPath(); ?>">
+                	<?php if ($_product->getImage() != 'no_selection') { ?>
+                    	<img style="max-height:95%;" src="<?php echo Mage::getBaseUrl('media') . 'catalog/product/' . $_product->getImage(); ?>" alt="" title="" class="sliderimg">
+                    <?php } else { ?>
+                        <img style="max-height:95%;" src="<?php echo $_product->getImageUrl(); ?>"  alt="" title="" >
+                    <?php } ?>
+                    </a>
+
+                    <?php /* ?>
+                    <div class="SliderName_2Description">
+                        <div class="slider_showface">
+                            <?php $customerData = Mage::getModel('airhotels/airhotels')->getCustomerPictureById($_product->getUserid()); ?>
+                            <?php if ($customerData[0]["imagename"]): ?>
+                                <?php                                
+                                $imageResized = Mage::getBaseDir("media") . "/catalog/customer/resz_" . $customerData[0]["imagename"];
+                                $imageDirUrl  = Mage::getBaseDir("media") . "/catalog/customer/" . $customerData[0]["imagename"];
+                                if (!file_exists($imageResized) && file_exists($imageDirUrl)) :
+                                    $imageObj = new Varien_Image($imageDirUrl);
+                                    $imageObj->constrainOnly(TRUE);
+                                    $imageObj->keepAspectRatio(TRUE);
+                                    $imageObj->keepFrame(FALSE);
+                                    $imageObj->resize(72, 72);
+                                    $imageObj->save($imageResized);
+                                endif;                                
+                                $imageUrl = Mage::getBaseUrl('media') . "catalog/customer/" . $customerData[0]["imagename"];
+                                if (file_exists($imageResized)) {
+                                    $imageUrl = Mage::getBaseUrl('media') . "catalog/customer/resz_" . $customerData[0]["imagename"];
+                                }
+                                ?>
+                            <a style="text-decoration: none;" href="<?php echo Mage::helper('airhotels')->getprofilepage().'id/'.$_product->getUserid();?>">
+                            <img src="<?php echo $imageUrl; ?>" class="face_img" height="86" alt=""></a>
+                            <?php else: ?>
+                                           <a style="text-decoration: none;" href="<?php echo Mage::helper('airhotels')->getprofilepage().'id/'.$_product->getUserid();?>">  
+                                               <img src="<?php echo $this->getSkinUrl('images/home_no_user.jpg'); ?>" class="face_img" alt="" > </a>
+                            <?php endif; ?>
+                            <div class="right_desc">
+                                <h3><a class="ss_name"
+                                       href="<?php echo Mage::getBaseUrl() . $_product->getUrlPath(); ?>"><?php echo $this->htmlEscape($_product->getName()); ?></a></h3>
+                                <span><?php
+                echo $this->htmlEscape($_product->getCity()) . ', ';
+                echo $this->htmlEscape($_product->getCountry());
+                            ?> </span>
+                                
+                                <span class="bottom_descs">
+                                    <?php
+                                    $reviews = Mage::getModel('review/review')->getResourceCollection();
+                                    $reviews->addStoreFilter(Mage::app()->getStore()->getId())
+                                            ->addStatusFilter(Mage_Review_Model_Review::STATUS_APPROVED)
+                                            ->addEntityFilter('product', $_product->getId())
+                                            ->setDateOrder()
+                                            ->addRateVotes();
+                                    $reviews = $reviews->getData();
+                                    ?>
+                                   <span><?php echo $currencySymbol . ' ' . round(Mage::helper('directory')->currencyConvert($_product['Price'], Mage::app()->getStore()->getBaseCurrencyCode(), Mage::app()->getStore()->getCurrentCurrencyCode()), 0) . '/ '.$this->__('Night') ?></span>
+                                   
+                               
+                                </span>
+                            </div>
+                            <div class="clear"></div>
+                        </div>
+                    </div>
+                	<?php */ ?>
+                </li>
+                <?php }?>
+                </ul>
+            <?php } ?>
+    <?php } ?>
+    
+    
+    	<div class="search-area">
+            <div class="container">
+                <div class="banner_outer">
+                    <div class="banner_transparent">
+                        <h3><?php echo $this->__('Find great affordable places to stay') ?></h3>
+                        <!-- <h4><?php echo $this->__('Affordable rooms where you need to be') ?></h4> -->
+                       <!-- <img src="images/testbluebutton.jpg"> -->
+                    </div>
+                </div>
+
+                <form action="<?php echo $this->getUrl('property/search/index') ?>" id="search" method="post" enctype="multipart/form-data" class="custom">
+
+                    <input id="searchTextField" name="searchTextField" type="text" class="searchmainpage"  placeholder="<?php echo $this->__('Where are you going') . "?"; ?>" autocomplete="off" />
+                     <div id="search_options" class=" left" style="">
+                            <div class="search_date">
+                              <input type="text"  id="checkinDate"  name="from"  placeholder="mm/dd/yyyy" autocomplete="off" />
+                            </div>
+                            <div class="search_date">
+                                <div><input type="text"   id="checkinTo"  name="to"  placeholder="mm/dd/yyyy" autocomplete="off" /></div>
+                            </div>
+
+                            <div class="search_guests">
+                                  <select id="number_of_guests" name="number_of_guests">
+                                       <option value="1">1  <?php echo $this->__('Guest'); ?></option>
+                                        <option value="2" >2 <?php echo $this->__('Guests'); ?></option>
+                                        <option value="3">3 <?php echo $this->__('Guests'); ?></option>
+                                        <option value="4">4 <?php echo $this->__('Guests'); ?></option>
+                                        <option value="5">5 <?php echo $this->__('Guests'); ?></option>
+                                        <option value="6">6 <?php echo $this->__('Guests'); ?></option>
+                                        <option value="7">7 <?php echo $this->__('Guests'); ?></option>
+                                        <option value="8">8 <?php echo $this->__('Guests'); ?></option>
+                                        <option value="9">9 <?php echo $this->__('Guests'); ?></option>
+                                        <option value="10">10 <?php echo $this->__('Guests'); ?></option>
+                                        <option value="11">11 <?php echo $this->__('Guests'); ?></option>
+                                        <option value="12">12 <?php echo $this->__('Guests'); ?></option>
+                                        <option value="13">13 <?php echo $this->__('Guests'); ?></option>
+                                        <option value="14">14 <?php echo $this->__('Guests'); ?></option>
+                                        <option value="15">15 <?php echo $this->__('Guests'); ?></option>
+                                        <option value="16">16+ <?php echo $this->__('Guests'); ?></option>
+                                  </select>
+                            </div>
+                        </div>
+                    <div class="left mleft">
+                        
+                         <button type="submit" class="large pink btn icon-only" id="submit_location" onclick="return validateSearch();">
+                    <?php echo $this->__('SEARCH'); ?> </button>
+                    </div>
+                  <div style="height:170px;"></div>                     
+<br />
+                    <div>
+						<ul id="navbanlist">
+							<li class="lined"><a href="about/"><img src = "https://roomcrunch.com/images/check.png" width="110px" height="110px"></a>
+							<br><a class="banner_button_text" href="about/"><?php echo $this->__('Why us')?></a>
+							</li>
+
+							<li class="lined"><a href="faq/booking/"><img src = "https://roomcrunch.com/images/search.png" width="110px" height="110px"></a>
+							<br><a class="banner_button_text" href="faq/booking/"><?php echo $this->__('Guests')?></a>
+							</li>
+
+							<li class="lined"><a href="faq/listing/"><img src = "https://roomcrunch.com/images/home.png" width="110px" height="110px"></a>
+							<br><a class="banner_button_text" href="faq/listing/"><?php echo $this->__('Hosts')?></a>
+							</li>
+						</ul>
+					</div>
+                    <div id="map_canvas" style="width:427px;"></div>
+                </form>
+            </div>
+            <!--<div class="home_buttons">
+            	<div class="home_buttons_box">
+	            	<a href="<?php echo $this->getUrl('booking/property/form')?>" class="pinkListButton"><?php echo $this->__('Add Your Space')?></a>
+					<a href="<?php echo $this->getUrl('booking/listing/form')?>" class="pinkListButton"><?php echo $this->__('Room Needed')?></a>
+				</div>
+            </div>-->
+        </div>
+	</div>
+</div>
+<script type="text/javascript">
+var $j = jQuery.noConflict();
+    function initialize() {
+        var mapOptions = {
+            //center: new google.maps.LatLng(-33.8688, 151.2195),
+            zoom: 13,
+            mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        var map = new google.maps.Map(document.getElementById('map_canvas'),
+        mapOptions);
+
+        var input = document.getElementById('searchTextField');
+
+        var autocomplete = new google.maps.places.Autocomplete(input);
+
+        autocomplete.bindTo('bounds', map);
+        // Autocomplete.
+        function setupClickListener(id, types) {
+            var radioButton = document.getElementById(id);
+            google.maps.event.addDomListener(radioButton, 'click', function() {
+                autocomplete.setTypes(types);
+            });
+        }
+
+    }
+    google.maps.event.addDomListener(window, 'load', initialize);
+
+    function validateSearch(){
+        $j("#searchResult").html("");
+        $j("#searchTextField").css("border-color","#D2D2D2");
+        window.location.href = "<?php echo Mage::getBaseUrl() . 'booking/property/advsearch/' ?>";
+        $j("#searchResult").html("Please set location");
+        return true;
+    }
+    
+    $j(function() {
+        var dates = $j( "#checkinDate, #checkinTo" ).datepicker({
+            //defaultDate: "+1w",
+            changeMonth: true,
+            numberOfMonths: 1,
+            minDate: '0',
+            onSelect: function( selectedDate ) {
+                var option = this.id == "checkinDate" ? "minDate" : "maxDate",
+                        instance = $j( this ).data( "datepicker" ),
+                        date = $j.datepicker.parseDate(
+                                instance.settings.dateFormat ||
+                                $j.datepicker._defaults.dateFormat,
+                                selectedDate, instance.settings );
+                dates.not( this ).datepicker( "option", option, date );
+                $j("#checkinDate" ).datepicker("option","maxDate","");
+
+                if(this.id == "checkinDate"){
+                        instance = $j( this ).data( "datepicker" )
+                        var depart = $j.datepicker.parseDate($j.datepicker._defaults.dateFormat, selectedDate);
+                        depart.setDate(depart.getDate() + 1);
+                        $j("#checkinTo" ).datepicker(  "option", "minDate", depart );
+                }
+            }
+        });
+    });
+</script>
+<script type="text/javascript">        
+var myWidth;
+if( typeof( window.innerWidth ) == 'number' ) {
+    //Non-IE
+    myWidth = window.innerWidth;
+}
+$j(function () {
+      // Slideshow 1
+      /*
+      $j(".rslides1").responsiveSlides({
+        speed: 1000,
+        nav: true,
+        namespace: "callbacks",
+        maxwidth: myWidth
+      });    
+	*/
+});
+</script>

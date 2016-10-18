@@ -1,0 +1,41 @@
+<?php
+$customerid  = Mage::app()->getRequest()->getParam('id');
+$customer = $address = Mage::getModel('customer/customer')->load($customerid);
+$profilePhoto = Mage::helper('customerextend')->getCustomerProfileImage($customerid);
+$cust_Name = $customer->getName();
+
+if(Mage::getStoreConfig('property_section/layout_settings/hide_address')) {
+	$nameArray = explode(' ', $cust_Name);
+	$displayName = $nameArray[0];
+} else {
+	$displayName = $cust_Name;
+}
+?>
+<div id="room">
+    <div class="middle" id="profile_blog">
+        <div class="profile_pic clearfix">
+            <div class="_pm_container">
+                <div class="_pm_shadow r"></div>
+                <div class="_pm_shadow l"></div>
+                <div class="_pm clearfix">
+                    <div class="_pm_inner clearfix">
+                     <?php
+                     if($profilePhoto != '' ){
+                     	echo "<img class='profilephoto' src='" . Mage::getBaseUrl('media') . "catalog/customer/" . $profilePhoto . "' alt='". $displayName ."' />";
+                     } else {
+			            if($customer->getLoginProvider() == 'Facebook' && $customer->getFacebookUserid() != '') {
+			            	echo '<img class="profilephoto"  src="https://graph.facebook.com/' . $customer->getFacebookUserid() .'/picture?type=large" alt="'. $displayName .'" />';
+			            } else {
+							echo "<img class='profilephoto' src='".$this->getSkinUrl('images/no_user.jpg')."' alt='". $displayName ."' />";
+			            }
+                     }
+                     ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <h2><?php echo $displayName; ?></h2>
+        <b><strong><?php //echo $this->__('From') ?></strong> <?php //echo $this->__('Chennai, Tamilnadu') ?></b>
+    </div>
+    <div class="clear"></div>
+</div>

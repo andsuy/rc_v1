@@ -1,0 +1,18 @@
+<div class="wishlists-navbar navbar-black navbar navbar-top" id="popular_wishlist">
+    <div class="navbar-inner">
+        <div class="navbar_container">
+            <ul class="nav">
+                <!--<li><a class="popular " href="http://roomcrunch.com/index.php/booking/property/popular/"><em></em>Popular</a></li>
+                <li><a class="my " href="http://roomcrunch.com/index.php/booking/property/wishlist/"><em></em>My Wish Lists</a></li>-->
+                <li><a href="<?php echo $this->__('property/index/form')?>" class="">Add Your Space</a></li>
+		<?php if (!Mage::getSingleton('customer/session')->isLoggedIn()) { ?>	
+		<li><a href="<?php echo Mage::helper('customer')->getRegisterUrl(); ?>"><?php echo $this->__('Sign Up') ?></a></li>
+		<?php }?>
+		
+
+<!--                <li><a href="<?php echo $this->__('listroom/index/form')?>" class="">Room Needed</a></li>
+                <li><a href="<?php echo $this->__('listroom/search/index')?>" class="">Find rooms needed</a></li>
+          -->  </ul>
+        </div>
+    </div>
+</div>

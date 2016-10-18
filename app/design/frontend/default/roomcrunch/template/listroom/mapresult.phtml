@@ -1,0 +1,108 @@
+<?php
+$collection = $this->getAdvanceSearchResult();
+//echo $collection; exit;
+//echo '<pre>'; print_r($collection); echo '</pre>'; exit;
+//echo '<pre>'; print_r($collection->getData()); echo '</pre>'; exit;
+$currencySymbol = Mage::app()->getLocale()->currency(Mage::app()->getStore()->getCurrentCurrencyCode())->getSymbol();
+if (count($collection)) {
+    ?>
+    <ul id="results">
+        <?php foreach ($collection as $_room) { ?>
+            <li class="search_result search_result_room">
+                <div class="search-result-container">
+                <div class="search_image_wrap">
+                <?php //echo '<pre>'; print_r($_room->getData()); echo '</pre>'; exit; ?>
+                <?php
+					//$profilePhoto = Mage::helper('customerextend')->getCustomerProfileImage($_room->getUserId());
+					//if ($profilePhoto != "") {
+						$_imageUrl = Mage::getBaseDir('media') . "/catalog/product/placeholder/default/genericnopic.jpg";
+						$imageResized = Mage::getBaseDir('media') . "/catalog/product/placeholder/default/resz_120_genericnopic.jpg";
+						if(!file_exists($imageResized) && file_exists($_imageUrl)) {
+							$imageObj = new Varien_Image($_imageUrl);
+							$imageObj->constrainOnly(TRUE);
+							$imageObj->keepAspectRatio(TRUE);
+							$imageObj->keepFrame(FALSE);
+							$imageObj->resize(120, 75);
+							$imageObj->save($imageResized);
+						}
+				?>
+						<a class="name" href="<?php echo $this->getUrl('listroom/search/view', array('id' => $_room->getId()))?>" >
+						    <?php echo "<img class='' src='" . Mage::getBaseUrl('media') . "catalog/product/placeholder/default/resz_120_genericnopic.jpg" . "' alt='". $_room->getTitle() ."' /> "; ?>
+						</a>
+				<?php //} else { ?>
+						<!--<a href="<?php //echo $this->getUrl('customerextend/index/profile', array('id' => $_room->getUserId())) ?>" class="search-result-pimage">
+							<?php //echo "<img class='' src='" . $this->getSkinUrl('images/no_user.jpg') . "' /> "; ?>
+						</a>-->
+				<?php //} ?>
+				</div>
+                </div>
+                <div class="search-result-right">
+                    <div class="search-result-title-left">
+                        <div class="room_details">
+                            <h2 class="room_title">
+                                <a class="name" href="<?php echo $this->getUrl('listroom/search/view', array('id' => $_room->getId()))?>" >
+                                    <?php echo Mage::helper('listroom')->getPropertyName($_room->getTitle()); ?>
+                                </a>
+                            </h2>
+                            <p class="address">
+                                <?php
+                                if(trim($_room->getLocality()) != '') {
+	                                if (strlen($_room->getLocality()) >= 100) {
+	                                    echo substr($_room->getLocality(), 0, 100) . ".. <br />";
+	                                } else {
+	                                    echo $_room->getLocality() . '<br />';
+	                                }
+                                }
+                                ?>
+                        		<?php echo $_room->getCity() . ', ' . $_room->getState(); ?>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="search_price_right">
+                        <div class="price ">
+                            <div class="price_data">
+                                <div class="currency_with_sup">
+                                    <?php
+                                    echo $currencySymbol . round(Mage::helper('directory')->currencyConvert($_room->getBudgetMin(), Mage::app()->getStore()->getBaseCurrencyCode(), Mage::app()->getStore()->getCurrentCurrencyCode()), 0) .'-'. $currencySymbol . round(Mage::helper('directory')->currencyConvert($_room->getBudgetMax(), Mage::app()->getStore()->getBaseCurrencyCode(), Mage::app()->getStore()->getCurrentCurrencyCode()), 0);
+                                    ?>
+                                </div>
+                            </div>
+                            <div class="price_modifier"><?php echo $this->__('Per night') ?></div>
+                        </div>
+                    </div>
+
+                </div>
+            </li>
+            <?php
+        }
+        ?>
+    </ul>
+    <div class="clear"></div>
+    <div class="search-result-pagination">
+        <ul>
+            <?php
+            $n = ceil($collection->getSize() / 10);
+            if ($n > 1):
+                for ($i = 1; $i <= $n; $i++) {
+                    ?>
+                    <?php if ($this->getRequest()->getParam('pageno') == $i): ?>
+                        <li class="page-current"><?php echo $i; ?></li>
+                    <?php else: ?>
+                        <li class="page" onclick="ajaxSearchResult('<?php echo $i; ?>')"><?php echo $i; ?></li>
+                    <?php
+                    endif;
+                }
+            endif;
+            ?>
+        </ul>
+    </div>          
+
+    <?php
+}
+else {
+    echo "<div class='no-records-found' style='text-align: center;color:red'>" . $this->__('No Records found') . "</div>";
+}
+?>
+
+

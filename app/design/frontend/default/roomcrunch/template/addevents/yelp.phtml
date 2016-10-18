@@ -1,0 +1,61 @@
+<?php if($this->isEnabled('yelp_restaurant_settings')) { ?>
+<?php
+	if($this->getIsHomePage()) {
+		$events = $this->getEventsListHome('restaurants');
+	} else {
+		$events = $this->getEventsList($this->getRequest()->getParam('id'), 'restaurants');
+	}
+	$eventResponse = get_object_vars($events);
+	//echo '<pre>'; print_r($eventResponse['businesses']); echo '<pre>'; exit;
+	if(!empty($eventResponse['error'])) { $eventResponseDetails = get_object_vars($eventResponse['error']); }
+?>
+	<ul id="event_lists" class="rounded tab-section event_lists" style="display: block;">
+	<?php if(!empty($eventResponseDetails) || count(!$eventResponse['businesses']) > 1) { ?>
+		<li class="rounded" style="margin-bottom:0;">
+			<div class="event_network"><?php echo $this->__('No restaurants found in the area.')?></div>
+		</li>
+	<?php } else { ?>
+		<?php if(count($eventResponse['businesses']) > 1) { ?>
+			<?php
+			$i = 0;
+			foreach ($eventResponse['businesses'] as $_event) {
+			$i++;
+				//echo '111';
+				$eventDetails = get_object_vars($_event);
+				$eventLocation = get_object_vars($eventDetails['location']);
+				//echo '<pre>'; print_r($eventDetails); echo '</pre>';
+			?>
+				<li class="rounded" <?php if($i==4){ echo 'style="margin-bottom:0;"';}?>>
+		            <div class="event_header">
+		            	<div class="item_image_box">
+		            		<div class="event_image"><a target="_blank" href="<?php echo $eventDetails['url']; ?>">
+		            		<?php if($eventDetails['image_url']) { ?>
+		            			<?php $imageUrl = str_replace('/ms', '/ls', $eventDetails['image_url']); ?>
+		            			<img src="<?php echo str_replace('http://', 'https://', $imageUrl); ?>" alt="<?php echo $eventDetails['name']; ?>" title="<?php echo $eventDetails['name']; ?>" />
+		            		<?php } else { ?>
+		            			<img src="<?php echo $this->getSkinUrl('images/no_image.jpg'); ?>" alt="<?php echo $eventDetails['name']; ?>" title="<?php echo $eventDetails['name']; ?>" />
+		            		<?php } ?>
+		            		</a></div>
+		                	<div class="event_details">
+		            			<h1 class="event_title"><a target="_blank" href="<?php echo $eventDetails['url']; ?>" title="<?php echo $eventDetails['name']; ?>"><span class="summary"><?php echo $eventDetails['name']; ?></span></a></h1>
+		            			<h2 class="org_title"><span class="rating"><img src="<?php echo str_replace('http://', 'https://', $eventDetails['rating_img_url']); ?>" alt="<?php echo $eventDetails['rating']; ?>" title="<?php echo $eventDetails['rating']; ?>" /></span><span class="review_count"><?php echo $eventDetails['review_count']; ?> reviews</span></h2>
+				                <h2 class="event_time">
+				                	<p><?php echo $eventLocation['display_address'][0]; ?></p>
+				                	<p><?php echo end($eventLocation['display_address']); ?></p>
+				                </h2>
+				                <div class="event_network"><span class="ph_num"><?php if(!empty($eventDetails['display_phone'])) { echo $eventDetails['display_phone']; } ?></span></div>
+		                	</div>
+		                	<div class="clearer"></div>
+		                </div>
+		            </div>
+		        </li>
+			<?php } ?>
+		<?php } else { ?>
+		<li class="rounded" style="margin-bottom:0;">
+			<div class="event_network"><?php echo $this->__('No places found in the area.')?></div>
+		</li>
+		<?php } ?>
+	<?php } ?>
+	</ul>
+	<div class="clearer"></div>
+<?php } ?>

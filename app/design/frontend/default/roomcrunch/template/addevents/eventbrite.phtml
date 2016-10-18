@@ -1,0 +1,89 @@
+<?php if($this->isEnabled()) { ?>
+<?php
+	if($this->getIsHomePage()) {
+		$events = $this->getEventsListHome();
+	} else {
+		$events = $this->getEventsList($this->getRequest()->getParam('id'));
+	}
+	//echo '<pre>'; print_r($events); echo '</pre>';
+?>
+	<ul id="event_lists" class="rounded tab-section event_lists" style="display: block;">
+	<?php if(count($events['events']) > 1) { ?>
+		<?php
+		$i = 0;
+		foreach ($events['events'] as $_event) {
+			$i++;
+			if($i != 1) {
+				//echo '111';
+				$event = get_object_vars($_event);
+				$eventDetails = get_object_vars($event['event']);
+				$organizerDetails = get_object_vars($eventDetails['organizer']);
+				$venueDetails = get_object_vars($eventDetails['venue']);
+				//echo '<pre>'; print_r($eventDetails); echo '</pre>';
+			?>
+				<li class="rounded" <?php if($i==4){ echo 'style="margin-bottom:0;"';}?>>
+		            <div class="event_header">
+		            	<div class="item_image_box">
+		            		<div class="event_image"><a target="_blank" href="<?php echo $eventDetails['url']; ?>">
+		            		<?php if(!empty($eventDetails['logo'])) { ?>
+		            			<img src="<?php echo str_replace('http://', 'https://', $eventDetails['logo']); ?>" alt="<?php echo str_replace('"', '', $eventDetails['title']); ?>" title="<?php echo str_replace('"', '', $eventDetails['title']); ?>" />
+		            		<?php } else { ?>
+		            			<img src="<?php echo $this->getSkinUrl('images/no_image.jpg'); ?>" alt="<?php echo str_replace('"', '', $eventDetails['title']); ?>" title="<?php echo $eventDetails['title']; ?>" />
+		            		<?php } ?>
+		            		</a></div>
+		                	<div class="event_details">
+		            			<h1 class="event_title"><a target="_blank" href="<?php echo $eventDetails['url']; ?>" title="<?php echo str_replace('"', '', $eventDetails['title']); ?>"><span class="summary"><?php echo $eventDetails['title']; ?></span></a></h1>
+		            			<h2 class="org_title"><a target="_blank" href="<?php echo $organizerDetails['url']?>" title="<?php echo str_replace('"', '', $organizerDetails['name']); ?>"><?php echo $organizerDetails['name']?></a></h2>
+				                <h2 class="event_time">
+				                <?php if($eventDetails['repeats'] == 'yes') { ?>
+				                	<?php
+				                		$repeatSchedule = explode('-', $eventDetails['repeat_schedule']);
+				                		//echo '<pre>'; print_r($repeatSchedule); echo '</pre>';
+				                	?>
+				                	<?php
+				                	if($repeatSchedule[0] == 'custom') {
+				                		echo 'Multiple Dates';
+				                	} else {
+				                		echo ucfirst($repeatSchedule[0]) . ' Event';
+				                	}
+				                	?>
+				                	<?php if($repeatSchedule[0] != 'daily' && $repeatSchedule[0] != 'custom') { ?>
+				                			-
+				                		<?php $repeatDay = explode(',', $repeatSchedule[2]);?>
+				                		Every
+				                		<?php
+				                			foreach ($repeatDay as $_key => $_day) {
+				                				if($_day == 'Y') {
+				                					echo $this->getDay($_key) . '&nbsp;';
+				                				}
+				                			}
+				                		?>
+									<?php }?>
+									<?php if($repeatSchedule[0] != 'custom') { ?>
+										:&nbsp;
+					                	<?php echo date('g:i A', strtotime($eventDetails['start_date'])); ?> <span class="pipe">to</span> <?php echo date('g:i A', strtotime($eventDetails['end_date'])); ?> (<?php echo $eventDetails['timezone_offset']?>)
+				                	<?php } ?>
+				                <?php } else { ?>
+				                	<?php if(current(explode(' ', $eventDetails['start_date'])) == current(explode(' ', $eventDetails['end_date']))) { ?>
+				                		<?php echo date('l, F j, Y', strtotime($eventDetails['start_date'])); ?> from <?php echo date('g:i A', strtotime($eventDetails['start_date'])); ?> to <?php echo date('g:i A', strtotime($eventDetails['end_date'])); ?> (<?php echo $eventDetails['timezone_offset']?>)
+				                	<?php } else { ?>
+				                		<?php echo date('l, F j, Y g:i A', strtotime($eventDetails['start_date'])); ?> <span class="pipe">to</span> <?php echo date('l, F j, Y g:i A', strtotime($eventDetails['end_date'])); ?> (<?php echo $eventDetails['timezone_offset']?>)
+				                	<?php } ?>
+				                <?php } ?>
+				                </h2>
+				                <div class="event_network"><?php echo $venueDetails['city'] . ', ' . strtoupper($venueDetails['region']); ?></div>
+		                	</div>
+		                	<div class="clearer"></div>
+		                </div>
+		                
+		            </div>
+		        </li>
+			<?php } ?>
+		<?php } ?>
+	<?php } else { ?>
+			<li class="rounded" style="margin-bottom:0;">
+				<div class="event_network"><?php echo $this->__('No events to display.') ?></div>
+			</li>
+	<?php } ?>
+	</ul>
+<?php } ?>

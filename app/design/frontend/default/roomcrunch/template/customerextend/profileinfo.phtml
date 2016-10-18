@@ -1,0 +1,55 @@
+<?php
+$customerData = $this->getCustomerProfile();
+?>
+<div class="personal-info">
+    <div class="page-title">
+	    <h1><b class="icon_grid edit_id"></b><?php echo $this->__('Edit Personal Information') ?></h1>
+	</div>
+	<form action="<?php echo $this->getUrl('customerextend/manage/update') ?>" method="post" id="profile_update" enctype="multipart/form-data" >
+	    <div class="fieldset">
+	        <h2 class="legend"><?php echo $this->__('Profile Information') ?></h2>
+	        <div class="clear"></div>
+	        <ul class="form-list profile_info">
+	            <li>
+	                <div id="profile_img" class="form-space">
+	                    <label class="label_align"><?php echo $this->__('Response Time:') ?></label>
+	                    <input class="required-entry" type="text" id="response_time" name="response_time" value="<?php echo $customerData->getResponseTime() ?>"/>
+	                    <?php echo $this->__('(Eg.In 1 hour)'); ?>
+	                    <div class="clearfix"></div>
+	                </div>
+	            </li>
+	            <?php $currencyObj = new Mage_Directory_Block_Currency; ?>
+	            <?php if($currencyObj->getCurrencyCount()>1) { ?>
+	            <li>
+	                <div id="profile_img" class="form-space">
+	                    <label class="label_align"><?php echo $this->__('Currency:') ?></label>
+				        <select name="currency" title="<?php echo $this->__('Select Your Currency') ?>">
+				        <?php foreach ($currencyObj->getCurrencies() as $_code => $_name): ?>
+				            <option value="<?php echo $_code ?>"<?php if($_code==$customerData->getCurrency()): ?> selected="selected"<?php endif; ?>>
+				                <?php echo $_name ?> - <?php echo $_code ?>
+				            </option>
+				        <?php endforeach; ?>
+				        </select>
+	                    <div class="clearfix"></div>
+	                </div>
+	            </li>
+	            <?php } ?>
+	            <li>
+	                <div id="profile_img">
+	                    <label class="label_align"> <?php echo $this->__('More about the Host:') ?></label>
+	                    <textarea class="required-entry" name="host_details" id="host_details"><?php echo $customerData->getHostDetails() ?></textarea>
+	                    <div class="clearfix"></div>
+	                </div>
+	            </li>
+	            <li>
+	                <button type="submit" title="<?php echo $this->__('Update profile information') ?>" class="button right"><span><span><?php echo $this->__('Update profile information') ?></span></span></button>
+	            </li>
+	        </ul>
+	    </div>
+	</form>
+</div>
+<script type="text/javascript">
+//<![CDATA[
+var dataForm = new VarienForm('profile_update', true);
+//]]>
+</script>

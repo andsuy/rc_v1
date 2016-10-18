@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+	<config>
+		<acl>
+			<resources>
+				<admin>
+					<children>
+						<system>
+							<children>
+								<config>
+									<children>
+										<ipin translate="title" module="addevents">
+											<title>IPIN Section</title>
+											<sort_order>10</sort_order>
+										</ipin>
+										<eventbrite translate="title" module="addevents">
+											<title>Eventbrite Section</title>
+											<sort_order>2</sort_order>
+										</eventbrite>
+										<yelp translate="title" module="addevents">
+											<title>Yelp Section</title>
+											<sort_order>30</sort_order>
+										</yelp>
+										<!--<foursquare translate="title" module="addevents">
+											<title>Foursquare Section</title>
+											<sort_order>40</sort_order>
+										</foursquare>-->
+									</children>
+								</config>
+							</children>
+						</system>
+					</children>
+				</admin>
+			</resources>
+		</acl>
+	</config>

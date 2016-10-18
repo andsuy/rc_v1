@@ -1,0 +1,70 @@
+<?php
+$booking = $this->getBooking();
+$order = $this->getOrder($booking->getOrderId());
+$product = $this->getProduct($booking->getProductId());
+$guest = $this->getGuest($booking->getGuestId());
+?>
+<div class="page-title">
+    <h1><?php echo $this->getTitle($booking->getProductId()) ?></h1>
+</div>
+<div class="booking_view_details">
+	<dl class="item-options">
+		<dt>Property</dt>
+		<dd><a href="<?php echo $this->getUrl('booking/index/property', array('pid' => $booking->getProductId()))?>" title="View all bookings"><?php echo $product->getName() ?></a></dd>
+		<dt>Checkin</dt>
+		<dd><?php echo date('n/j/Y', strtotime($booking->getCheckin())) ?></dd>
+		<dt>Checkout</dt>
+		<dd><?php echo date('n/j/Y', strtotime($booking->getCheckout())) ?></dd>
+		<dt>Accommodate</dt>
+		<dd><?php echo $booking->getAccomodates() ?></dd>
+		<dt>Booking Currency</dt>
+		<dd><?php echo $booking->getOrderCurrencyCode() ?></dd>
+		<dt>Order Status</dt>
+		<dd><i><?php echo $order->getStatusLabel() ?></i></dd>
+		<dt>Booking Status</dt>
+		<dd><i><?php echo $this->getBookingStatusLabel($booking->getBookingStatus()) ?></i></dd>
+		<dt>Booking Date</dt>
+		<dd><?php echo date('n/j/Y', strtotime($booking->getCreatedAt())) ?></dd>
+		<dt>Secure Code Status</dt>
+		<dd><i><?php echo $this->getSecretCodeStatusLabel($booking->getKeyStatus()) ?></i></dd>
+	</dl>
+	<div class="clearer"></div>
+	<?php if($booking->getBookingStatus() == 0) { ?>
+    <div class="booking_action_button">
+		<button class="button" type="button" onclick="return processAction('Are you sure to cancel the booking?', '<?php echo $this->getUrl('booking/index/cancel', array('id' => $booking->getBookingId()))?>')">Cancel</button>
+		<button class="button" type="button" onclick="return processAction('Are you sure to confirm the booking?', '<?php echo $this->getUrl('booking/index/confirm', array('id' => $booking->getBookingId()))?>')">Confirm</button>
+		<div class="clearer"></div>
+    </div>
+	<?php } ?>
+	
+	<?php if($booking->getBookingStatus() == 1 && ($booking->getKeyStatus() == 1 || $booking->getKeyStatus() == 3)) { ?>
+	<div class="secure_code_area">
+		<form id="secure_code_form" name="secure_code_form" action="<?php echo $this->getUrl('booking/index/secure'); ?>" method="POST">
+			<input type="hidden" name="id" value="<?php echo $booking->getId() ?>" />
+			<div class="label">Enter the secure code for the booking:</div>
+			<div class="input_box">
+				<input type="text" maxlength="5" name="secure_key" id="secure_key" class="required-entry validate-length minimum-length-5 maximum-length-5" <?php if($booking->getKeyStatus() == 3) {echo 'disabled="disabled"';} ?> autocomplete="off" />
+				<button class="button" title="Submit" type="submit" <?php if($booking->getKeyStatus() == 3) {echo 'disabled="disabled" style="opacity:.6; cursor:default;"';} ?>><span><span>Add</span></span></button>
+				<div class="clearer"></div>
+			</div>
+		</form>
+	</div>
+	<?php } ?>
+</div>
+<div class="page-button" style="float:right;">
+    <a title="Back" href="<?php echo $this->getUrl('booking/index/manage')?>">Back</a>
+</div>
+<div class="clearer"></div>
+<script type="text/javascript">
+//<![CDATA[
+    var secureCodeForm = new VarienForm('secure_code_form');
+    
+	function processAction(msg, url) {
+		var c = confirm(msg);
+		if(!c) {
+			return false;
+		}
+		window.location.href = url;
+	}
+//]]>
+</script>

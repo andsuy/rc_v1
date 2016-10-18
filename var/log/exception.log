@@ -1,0 +1,97 @@
+2014-08-20T10:54:18+00:00 ERR (3): 
+exception 'Mage_Core_Exception' with message 'The address total model should be extended from Mage_Sales_Model_Quote_Address_Total_Abstract.' in /apps/roomcrunch_backup/roomcrunch/app/Mage.php:595
+Stack trace:
+#0 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Sales/Model/Quote/Address/Total/Collector.php(120): Mage::throwException('The address tot...')
+#1 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Sales/Model/Quote/Address/Total/Collector.php(145): Mage_Sales_Model_Quote_Address_Total_Collector->_initModelInstance('Excellence_Fee_...', 'deposit', Object(Mage_Core_Model_Config_Element))
+#2 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Sales/Model/Quote/Address/Total/Collector.php(81): Mage_Sales_Model_Quote_Address_Total_Collector->_initModels()
+#3 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Model/Config.php(1348): Mage_Sales_Model_Quote_Address_Total_Collector->__construct(Array)
+#4 /apps/roomcrunch_backup/roomcrunch/app/Mage.php(463): Mage_Core_Model_Config->getModelInstance('sales/quote_add...', Array)
+#5 /apps/roomcrunch_backup/roomcrunch/app/Mage.php(477): Mage::getModel('sales/quote_add...', Array)
+#6 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Sales/Model/Quote/Address.php(988): Mage::getSingleton('sales/quote_add...', Array)
+#7 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Sales/Model/Quote/Address.php(1012): Mage_Sales_Model_Quote_Address->getTotalCollector()
+#8 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Sales/Model/Quote.php(1331): Mage_Sales_Model_Quote_Address->collectTotals()
+#9 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Checkout/Model/Cart.php(458): Mage_Sales_Model_Quote->collectTotals()
+#10 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Checkout/controllers/CartController.php(479): Mage_Checkout_Model_Cart->save()
+#11 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Controller/Varien/Action.php(418): Mage_Checkout_CartController->deleteAction()
+#12 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Controller/Varien/Router/Standard.php(250): Mage_Core_Controller_Varien_Action->dispatch('delete')
+#13 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Controller/Varien/Front.php(172): Mage_Core_Controller_Varien_Router_Standard->match(Object(Mage_Core_Controller_Request_Http))
+#14 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Model/App.php(354): Mage_Core_Controller_Varien_Front->dispatch()
+#15 /apps/roomcrunch_backup/roomcrunch/app/Mage.php(684): Mage_Core_Model_App->run(Array)
+#16 /apps/roomcrunch_backup/roomcrunch/index.php(87): Mage::run('default', 'store')
+#17 {main}
+2014-09-06T17:16:07+00:00 ERR (3): 
+exception 'Zend_Mail_Transport_Exception' with message 'Unable to send mail. ' in /apps/roomcrunch_backup/roomcrunch/lib/Zend/Mail/Transport/Sendmail.php:137
+Stack trace:
+#0 /apps/roomcrunch_backup/roomcrunch/lib/Zend/Mail/Transport/Abstract.php(348): Zend_Mail_Transport_Sendmail->_sendMail()
+#1 /apps/roomcrunch_backup/roomcrunch/lib/Zend/Mail.php(1194): Zend_Mail_Transport_Abstract->send(Object(Zend_Mail))
+#2 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Model/Email/Template.php(454): Zend_Mail->send()
+#3 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Model/Email/Template.php(506): Mage_Core_Model_Email_Template->send(Array, Array, Array)
+#4 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Model/Email/Template/Mailer.php(79): Mage_Core_Model_Email_Template->sendTransactional('4', 'general', Array, Array, Array, '1')
+#5 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Customer/Model/Customer.php(676): Mage_Core_Model_Email_Template_Mailer->send()
+#6 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Customer/Model/Customer.php(603): Mage_Customer_Model_Customer->_sendEmailTemplate('customer/create...', 'customer/create...', Array, '1')
+#7 /apps/roomcrunch_backup/roomcrunch/app/code/local/Apptha/Sociallogin/controllers/IndexController.php(211): Mage_Customer_Model_Customer->sendNewAccountEmail()
+#8 /apps/roomcrunch_backup/roomcrunch/app/code/local/Apptha/Sociallogin/controllers/IndexController.php(514): Apptha_Sociallogin_IndexController->customerAction('Meri', 'Hoban', 'xcrunner1990@gm...', 'Facebook', '102029282535876...')
+#9 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Controller/Varien/Action.php(418): Apptha_Sociallogin_IndexController->fbloginAction()
+#10 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Controller/Varien/Router/Standard.php(250): Mage_Core_Controller_Varien_Action->dispatch('fblogin')
+#11 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Controller/Varien/Front.php(172): Mage_Core_Controller_Varien_Router_Standard->match(Object(Mage_Core_Controller_Request_Http))
+#12 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Model/App.php(354): Mage_Core_Controller_Varien_Front->dispatch()
+#13 /apps/roomcrunch_backup/roomcrunch/app/Mage.php(684): Mage_Core_Model_App->run(Array)
+#14 /apps/roomcrunch_backup/roomcrunch/index.php(87): Mage::run('default', 'store')
+#15 {main}
+2014-09-10T12:06:32+00:00 ERR (3): 
+exception 'Zend_Mail_Transport_Exception' with message 'Unable to send mail. ' in /apps/roomcrunch_backup/roomcrunch/lib/Zend/Mail/Transport/Sendmail.php:137
+Stack trace:
+#0 /apps/roomcrunch_backup/roomcrunch/lib/Zend/Mail/Transport/Abstract.php(348): Zend_Mail_Transport_Sendmail->_sendMail()
+#1 /apps/roomcrunch_backup/roomcrunch/lib/Zend/Mail.php(1194): Zend_Mail_Transport_Abstract->send(Object(Zend_Mail))
+#2 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Model/Email/Template.php(454): Zend_Mail->send()
+#3 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Model/Email/Template.php(506): Mage_Core_Model_Email_Template->send(Array, Array, Array)
+#4 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Model/Email/Template/Mailer.php(79): Mage_Core_Model_Email_Template->sendTransactional('4', 'general', Array, Array, Array, '1')
+#5 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Customer/Model/Customer.php(676): Mage_Core_Model_Email_Template_Mailer->send()
+#6 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Customer/Model/Customer.php(603): Mage_Customer_Model_Customer->_sendEmailTemplate('customer/create...', 'customer/create...', Array, '1')
+#7 /apps/roomcrunch_backup/roomcrunch/app/code/local/Apptha/Sociallogin/controllers/IndexController.php(864): Mage_Customer_Model_Customer->sendNewAccountEmail('registered', '', '1')
+#8 /apps/roomcrunch_backup/roomcrunch/app/code/local/Apptha/Sociallogin/controllers/IndexController.php(1111): Apptha_Sociallogin_IndexController->_welcomeCustomer(Object(Mage_Customer_Model_Customer))
+#9 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Controller/Varien/Action.php(418): Apptha_Sociallogin_IndexController->createPostAction()
+#10 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Controller/Varien/Router/Standard.php(250): Mage_Core_Controller_Varien_Action->dispatch('createPost')
+#11 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Controller/Varien/Front.php(172): Mage_Core_Controller_Varien_Router_Standard->match(Object(Mage_Core_Controller_Request_Http))
+#12 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Model/App.php(354): Mage_Core_Controller_Varien_Front->dispatch()
+#13 /apps/roomcrunch_backup/roomcrunch/app/Mage.php(684): Mage_Core_Model_App->run(Array)
+#14 /apps/roomcrunch_backup/roomcrunch/index.php(87): Mage::run('default', 'store')
+#15 {main}
+2014-09-11T06:04:35+00:00 ERR (3): 
+exception 'Zend_Mail_Transport_Exception' with message 'Unable to send mail. ' in /apps/roomcrunch_backup/roomcrunch/lib/Zend/Mail/Transport/Sendmail.php:137
+Stack trace:
+#0 /apps/roomcrunch_backup/roomcrunch/lib/Zend/Mail/Transport/Abstract.php(348): Zend_Mail_Transport_Sendmail->_sendMail()
+#1 /apps/roomcrunch_backup/roomcrunch/lib/Zend/Mail.php(1194): Zend_Mail_Transport_Abstract->send(Object(Zend_Mail))
+#2 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Model/Email/Template.php(454): Zend_Mail->send()
+#3 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Model/Email/Template.php(506): Mage_Core_Model_Email_Template->send(Array, Array, Array)
+#4 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Model/Email/Template/Mailer.php(79): Mage_Core_Model_Email_Template->sendTransactional('4', 'general', Array, Array, Array, '1')
+#5 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Customer/Model/Customer.php(676): Mage_Core_Model_Email_Template_Mailer->send()
+#6 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Customer/Model/Customer.php(603): Mage_Customer_Model_Customer->_sendEmailTemplate('customer/create...', 'customer/create...', Array, '1')
+#7 /apps/roomcrunch_backup/roomcrunch/app/code/local/Apptha/Sociallogin/controllers/IndexController.php(864): Mage_Customer_Model_Customer->sendNewAccountEmail('registered', '', '1')
+#8 /apps/roomcrunch_backup/roomcrunch/app/code/local/Apptha/Sociallogin/controllers/IndexController.php(1111): Apptha_Sociallogin_IndexController->_welcomeCustomer(Object(Mage_Customer_Model_Customer))
+#9 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Controller/Varien/Action.php(418): Apptha_Sociallogin_IndexController->createPostAction()
+#10 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Controller/Varien/Router/Standard.php(250): Mage_Core_Controller_Varien_Action->dispatch('createPost')
+#11 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Controller/Varien/Front.php(172): Mage_Core_Controller_Varien_Router_Standard->match(Object(Mage_Core_Controller_Request_Http))
+#12 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Model/App.php(354): Mage_Core_Controller_Varien_Front->dispatch()
+#13 /apps/roomcrunch_backup/roomcrunch/app/Mage.php(684): Mage_Core_Model_App->run(Array)
+#14 /apps/roomcrunch_backup/roomcrunch/index.php(87): Mage::run('default', 'store')
+#15 {main}
+2014-09-13T22:04:57+00:00 ERR (3): 
+exception 'Zend_Mail_Transport_Exception' with message 'Unable to send mail. ' in /apps/roomcrunch_backup/roomcrunch/lib/Zend/Mail/Transport/Sendmail.php:137
+Stack trace:
+#0 /apps/roomcrunch_backup/roomcrunch/lib/Zend/Mail/Transport/Abstract.php(348): Zend_Mail_Transport_Sendmail->_sendMail()
+#1 /apps/roomcrunch_backup/roomcrunch/lib/Zend/Mail.php(1194): Zend_Mail_Transport_Abstract->send(Object(Zend_Mail))
+#2 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Model/Email/Template.php(454): Zend_Mail->send()
+#3 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Model/Email/Template.php(506): Mage_Core_Model_Email_Template->send(Array, Array, Array)
+#4 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Model/Email/Template/Mailer.php(79): Mage_Core_Model_Email_Template->sendTransactional('4', 'general', Array, Array, Array, '1')
+#5 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Customer/Model/Customer.php(676): Mage_Core_Model_Email_Template_Mailer->send()
+#6 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Customer/Model/Customer.php(603): Mage_Customer_Model_Customer->_sendEmailTemplate('customer/create...', 'customer/create...', Array, '1')
+#7 /apps/roomcrunch_backup/roomcrunch/app/code/local/Apptha/Sociallogin/controllers/IndexController.php(211): Mage_Customer_Model_Customer->sendNewAccountEmail()
+#8 /apps/roomcrunch_backup/roomcrunch/app/code/local/Apptha/Sociallogin/controllers/IndexController.php(514): Apptha_Sociallogin_IndexController->customerAction('Mitchell', 'Miller', 'psk500@gmail.co...', 'Facebook', '101522464722006...')
+#9 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Controller/Varien/Action.php(418): Apptha_Sociallogin_IndexController->fbloginAction()
+#10 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Controller/Varien/Router/Standard.php(250): Mage_Core_Controller_Varien_Action->dispatch('fblogin')
+#11 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Controller/Varien/Front.php(172): Mage_Core_Controller_Varien_Router_Standard->match(Object(Mage_Core_Controller_Request_Http))
+#12 /apps/roomcrunch_backup/roomcrunch/app/code/core/Mage/Core/Model/App.php(354): Mage_Core_Controller_Varien_Front->dispatch()
+#13 /apps/roomcrunch_backup/roomcrunch/app/Mage.php(684): Mage_Core_Model_App->run(Array)
+#14 /apps/roomcrunch_backup/roomcrunch/index.php(87): Mage::run('default', 'store')
+#15 {main}

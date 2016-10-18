@@ -1,0 +1,63 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE_AFL.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magentocommerce.com for more information.
+ *
+ * @category    design
+ * @package     base_default
+ * @copyright   Copyright (c) 2013 Magento Inc. (http://www.magentocommerce.com)
+ * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ */
+/**
+ * @var Mage_Page_Block_Html_Header $this
+ */
+?>
+<div class="header-container">
+    <div class="header">
+        <div class="logo"><a href="<?php echo $this->getUrl('') ?>" title="<?php echo $this->getLogoAlt() ?>" class="logo"><strong><?php echo $this->getLogoAlt() ?></strong><img src="<?php echo $this->getLogoSrc() ?>" alt="<?php echo $this->getLogoAlt() ?>" /></a></div>
+        <a class="list_btn broswer_header" href="<?php echo $this->getUrl('property/index/form')?>" title="<?php echo $this->__('Add you Space')?>"><?php echo $this->__('Add Your Space') ?></a>
+		
+        <ul class="headermenu broswer_header">
+        	<?php if (!Mage::getSingleton('customer/session')->isLoggedIn()) { ?>
+				<li><a href="<?php echo $this->getUrl() ?>"><?php echo $this->__('Home') ?></a></li>
+				<li><a href="<?php echo Mage::helper('customer')->getRegisterUrl(); ?>"><?php echo $this->__('Sign Up') ?></a></li>
+				<li class="last_child_grid"><a href="<?php echo Mage::helper('customer')->getLoginUrl(); ?>"><?php echo $this->__('Log In') ?></a></li>
+			<?php } else { ?>
+				<?php
+                $customer = Mage::getSingleton('customer/session')->getCustomer();
+                $firstNane = $this->__('Hi').","." ".$customer->getFirstname(). '!';
+                $unreadInboxCount = Mage::helper('customerextend')->getUnreadInboxCount();
+                ?>
+                <li><a href="<?php echo $this->getUrl('customer/account')?>"><?php echo $firstNane;?></a></li>
+                <li><a href="<?php echo $this->getUrl('customerextend/manage/inbox'); ?>"><img src="<?php echo $this->getSkinUrl('images/message.png')?>" alt="<?php echo $this->__('Message')?>" /><?php if($unreadInboxCount > 0) { echo '<span class="label label-success">'. $unreadInboxCount .'</span>'; } ?></a></li>
+		        <li><a href="<?php echo $this->getUrl('property/index/show'); ?>"><?php echo $this->__('My Listings') ?></a></li>
+		        <li><a href="#"><?php echo $this->__('My Trips') ?></a></li>
+		        <li class="last_child_grid"><a href="<?php echo Mage::helper('customer')->getLogoutUrl(); ?>"><?php echo $this->__('Log Out') ?></a></li>
+			<?php } ?>
+        </ul>
+        <?php echo $this->getChildHtml('custom_currency_selector')?>
+        <?php /* ?><div class="quick-access">
+            <?php echo $this->getChildHtml('topSearch') ?>
+            <p class="welcome-msg"><?php echo $this->getChildHtml('welcome') ?> <?php echo $this->getAdditionalHtml() ?></p>
+            <?php echo $this->getChildHtml('topLinks') ?>
+            <?php echo $this->getChildHtml('store_language') ?>
+        </div><?php */ ?>
+        <?php //echo $this->getChildHtml('topContainer'); ?>
+    </div>
+</div>
+<?php echo $this->getChildHtml('topMenu') ?>

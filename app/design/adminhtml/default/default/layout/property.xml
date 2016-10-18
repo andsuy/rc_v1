@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<layout version="0.1.0">
+  <property_adminhtml_propertyavailablity_index>
+	<reference name="content">
+	  <block type="property/adminhtml_propertyavailablity" name="propertyavailablity" />
+	</reference>
+  </property_adminhtml_propertyavailablity_index>
+</layout>

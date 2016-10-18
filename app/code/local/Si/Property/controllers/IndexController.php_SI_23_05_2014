@@ -1,0 +1,493 @@
+<?php
+class Si_Property_IndexController extends Mage_Core_Controller_Front_Action{
+	public function preDispatch() {
+	    parent::preDispatch();
+	    if (!Mage::getSingleton('customer/session')->authenticate($this)) {
+	    	Mage::getSingleton('core/session')->addNotice($this->__('Login to access this section.'));
+	        $this->setFlag('', 'no-dispatch', true);
+	    }
+    }
+    
+    /*public function indexAction() {
+	  $this->loadLayout();   
+	  $this->getLayout()->getBlock("head")->setTitle($this->__("Titlename"));
+      $this->renderLayout();   
+    }*/
+    
+    public function formAction() {
+	  $this->loadLayout();   
+	  $this->getLayout()->getBlock("head")->setTitle($this->__("List your Space"));
+      $this->renderLayout();
+    }
+    
+    public function postAction() {
+        $this->loadLayout();
+        $this->renderLayout();
+        $customer = Mage::getSingleton('customer/session')->getCustomer();
+
+        $CusId = $customer->getId();
+        $CusEmail = $customer->getEmail();
+        $post = $this->getRequest()->getPost();
+
+        $amenity = array();
+        $amenity = implode(",", $post['amenities']);
+        $amenity = str_replace(" ", "", $amenity);
+        
+        $restriction = array();
+        $restriction = implode(",", $post['restrictions']);
+        $restriction = str_replace(" ", "", $restriction);
+        
+        $random = rand(1, 100000000000);
+        $sku = rand(1, $random);
+        $websiteId = Mage::app()->getWebsite()->getId(); //Website Id
+        $store_id = Mage::app()->getStore()->getId(); //store Id
+        
+        if ($post) {
+			if(isset($_FILES['propertyimage']['name']) && $_FILES['propertyimage']['name'] != '') {
+				try {	
+					/* Starting upload */	
+					$uploader = new Varien_File_Uploader('propertyimage');
+					
+					// Any extention would work
+	           		$uploader->setAllowedExtensions(array('jpg','jpeg','gif','png'));
+					$uploader->setAllowRenameFiles(false);
+					
+					// Set the file upload mode 
+					// false -> get the file directly in the specified folder
+					// true -> get the file in the product like folders 
+					//	(file.jpg will go in something like /media/f/i/file.jpg)
+					$uploader->setFilesDispersion(true);
+							
+					// We set media as the upload dir
+					$path = Mage::getBaseDir('media') . DS . 'catalog' . DS . 'product' . DS;
+					$imagePath = $uploader->save($path, $_FILES['propertyimage']['name'] );
+					//echo '<pre>'; print_r($imagePath); echo '</pre>'; exit;
+				} catch (Exception $e) {
+		      		Mage::getSingleton('core/session')->addError('Image upload error.');
+		        }
+		        //this way the name is saved in DB
+	  			$filePath = Mage::getBaseDir('media') . DS . 'catalog' . DS . 'product' . $imagePath['file'];
+			}
+				$lat = '';
+				$lnt = '';
+				try {
+					$q = urlencode($post['address'].','.$post['city'].",".$post['state'].",".$post['propcountry']);
+					$q = str_replace(" ", "+", $q);
+					$geocodeURL = "http://maps.googleapis.com/maps/api/geocode/json?address=$q&sensor=false";
+					$ch = curl_init($geocodeURL);
+					curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+					$result = curl_exec($ch);
+					$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+					curl_close($ch);
+					if ($httpCode == 200) {
+					  $geocode = json_decode($result);
+					  $lat = $geocode->results[0]->geometry->location->lat;
+					  $lnt = $geocode->results[0]->geometry->location->lng;
+					  //echo 'Lat=' . $lat . ' || Lnt='. $lnt; exit;
+					  $formatted_address = $geocode->results[0]->formatted_address;
+					  $geo_status = $geocode->status;
+					  $location_type = $geocode->results[0]->geometry->location_type;
+					} else {
+					 $geo_status = "HTTP_FAIL_$httpCode";
+					}
+				} catch (Exception $ex) {
+				}
+            $product = Mage::getModel('catalog/product');
+            // Build the product
+            $country_name = Mage::app()->getLocale()->getCountryTranslation($post['country']);
+            $search_keywords = $post['address'] . ' ' . $post['city'] . ' ' . $post['state'] . ' ' . $country_name;
+            $product->setStoreID($store_id);//Store Id
+               $product ->setRoomsAvailable($post['rooms_available'])//No of rooms avaliable
+                    ->setSku($sku)//product Sku
+                    ->setUserId($CusId)//Customer id
+                    ->setAttributeSetId(9)
+                    ->setTypeId('virtual')//product typereviewPage
+                    ->setName($post['name'])//propertyName
+                    ->setDescription($post['desc'])//Description
+                    ->setShortDescription($post['desc'])//shortdescription
+                    ->setPrice($post['price']) // Set some price
+                    ->setCleaningFee($post['cleaning_fee'])
+                    ->setExtraFees($post['extra_fees'])
+                    ->setDepositAmount($post['deposit_amount'])
+                    ->setAccomodates($post['accomodates'])//Custom created and assigned attributes
+                    ->setPropertyEmail($CusEmail)//host email id
+                    ->setAddress($post['address'])// property address
+                    ->setAmenities($amenity)//amenity like room service,e.t.c
+                    ->setRestrictions($restriction)
+                    ->setState($post['state'])//property state name
+                    ->setCity($post['city'])// property city name
+                    ->setCountry($country_name)//country
+                    ->setSearchKeywords($search_keywords)
+                    ->setLatitude($lat)//Latitude
+                    ->setLongitude($lnt)//Longitude
+                    ->setPropertySize($post['property_size'])
+                    ->setHostContactNumber($post['host_contact_number'])
+                    ->setCancellationPolicy($post['cancellation_policy'])//regarding to cancelation policy
+                    ->setBedType($post['bed_type'])//bedtype
+                    ->setPropertyType($post['property_type'])//property type
+                    ->setRoomType($post['room_type'])//room type
+                    ->setCategoryIds(array(3))//Property Category
+                    ->setVisibility(Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH)//Visibility in both catalog and search
+                    ->setKeywords(trim($post['keywords']))//property keywords<br>
+					->setHouseRule(trim($post['house_rule']))//house rules
+                    ->setStatus(1) //enable the Status
+                    ->setTaxClassId(0) # My default tax class
+                    ->setStockData(array(
+                        'is_in_stock' => 1,
+                        'qty' => 100000
+                    ))//Inventory
+                    //->setBanner($post['banner']) //banner
+                    ->setPropertyApproved(1) //approved
+                    ->setCreatedAt(strtotime('now'))
+                    ->setWebsiteIDs(array($websiteId)); //Website id, my is 1 (default frontend)
+                try {
+            		$product->save();
+            		
+            		$propertyLocationData = array(
+            									'product_id' => $product->getId(),
+            									'latitude' => $lat,
+            									'longitude' => $lnt,
+            									'created_at' => now(),
+            									'update_at' => now(),
+            								);
+            		$propertyLoaction = Mage::getModel('property/propertylocation');
+            		$propertyLoaction->setData($propertyLocationData)->setId();
+            		$propertyLoaction->save();
+                }
+                catch (Exception $ex) {
+                    //Handle the error
+                    Mage::getSingleton('core/session')->addError('Error');
+                }
+				if (file_exists($filePath)) {
+					try {
+						$productObj = Mage::getModel('catalog/product')->load($product->getId());
+						$productObj->addImageToMediaGallery($filePath, array('image', 'small_image', 'thumbnail'), true, false);
+						$productObj->save();
+					} catch (Exception $ex) {
+						Mage::getSingleton('core/session')->addError('Product image save error.');
+					}
+				}
+            Mage::getModel('core/cookie')->set('product_approveid', $product->getId());
+            Mage::getSingleton('core/session')->addSuccess($this->__('Space created Successfully'));
+
+            $this->_redirect('property/index/show', array('trigger' => 'p'));
+        } else {
+            Mage::getSingleton('core/session')->addError($this->__('Space cannot be created currently. Please contact customer care.'));
+            $this->_redirect('*/*/form');
+        }
+    }
+
+    public function editAction() {
+        $this->loadLayout();
+        $customerId = Mage::getSingleton('customer/session')->getCustomer()->getId();
+        $this->getLayout()->getBlock('head')->setTitle($this->__('Edit your Place'));
+        $this->renderLayout();
+
+        //owner permission 
+        $entity_id = (int)$this->getRequest()->getParam('id');
+        $collection = Mage::getModel('catalog/product')->load($entity_id);
+        $customer_id = $collection->getUserId();
+
+        if ($customerId != $customer_id) {
+            Mage::getSingleton('core/session')->addError($this->__("Access denied"));
+            $this->_redirect('*/*/show/');
+            return;
+        }
+    }
+    
+    public function updateAction() {
+        if($post = $this->getRequest()->getParams()) {
+	        $amenity = array();
+	        $amenity = implode(",", $post['amenity']);
+	        $amenity = str_replace(" ", "", $amenity);
+	        
+	        $restriction = array();
+	        $restriction = implode(",", $post['restriction']);
+	        $restriction = str_replace(" ", "", $restriction);
+	        
+	        $lat = '';
+			$lnt = '';
+			try {
+				$q = urlencode($post['address'].','.$post['city'].",".$post['state'].",".$post['country']);
+				$q = str_replace(" ", "+", $q);
+				$geocodeURL = "http://maps.googleapis.com/maps/api/geocode/json?address=$q&sensor=false";
+				$ch = curl_init($geocodeURL);
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+				$result = curl_exec($ch);
+				$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+				curl_close($ch);
+				if ($httpCode == 200) {
+				  $geocode = json_decode($result);
+				  $lat = $geocode->results[0]->geometry->location->lat;
+				  $lnt = $geocode->results[0]->geometry->location->lng;
+				  //echo 'Lat=' . $lat . ' || Lnt='. $lnt; exit;
+				  $formatted_address = $geocode->results[0]->formatted_address;
+				  $geo_status = $geocode->status;
+				  $location_type = $geocode->results[0]->geometry->location_type;
+				} else {
+				 $geo_status = "HTTP_FAIL_$httpCode";
+				}
+			} catch (Exception $ex) {
+			}
+					
+	        //Update product details 
+	        $product = Mage::getModel('catalog/product')->load($post['id']);
+	        $search_keywords = $post['address'] . ' ' . $post['city'] . ' ' . $post['state'] . ' ' . $post['country'];
+	        if ($product->getId()) {
+	        	try {
+		            $product->setPropertyType($post['property_type'])
+		                    ->setRoomType($post['room_type'])
+		                    ->setName($post['name'])
+		                    ->setDescription($post['description'])
+		                    ->setKeywords($post['keywords'])
+		                    ->setShortDescription($post['description'])
+		                    ->setHouseRule($post['house_rule'])
+		                    ->setAmenities($amenity)
+		                    ->setRestrictions($restriction)
+		                    ->setAccomodates($post['accomodates'])
+		                    ->setRoomsAvailable($post['rooms_available'])
+		                    ->setBedtype($post['bed_type'])
+		                    ->setPrice($post['price'])
+		                    ->setCleaningFee($post['cleaning_fee'])
+		                    ->setExtraFees($post['extra_fees'])
+		                    ->setDepositAmount($post['deposit_amount'])
+		                    ->setAddress($post['address'])
+		                    ->setCity($post['city'])
+		                    ->setState($post['state'])
+		                    ->setCountry($post['country'])
+		                    ->setSearchKeywords($search_keywords)
+		                    ->setPropertySize($post['property_size'])
+		                    ->setHostContactNumber($post['host_contact_number'])
+		                    ->setLatitude($lat)
+		                    ->setLongitude($lnt)
+		                    ->setMetaTitle($post['meta_title'])//Meta title
+		                    ->setMetaKeyword($post['meta_keyword'])//Meta keywords
+		                    ->setMetaDescription($post['meta_description'])//Meta description
+		                    ->setCancellationPolicy($post['cancellation_policy'])
+		                    ->setBanner($post['banner']); //banner
+		            $product->save();
+		            
+		            $propertyLoactionObj = Mage::getModel('property/propertylocation')->load($product->getId(), 'product_id');
+            		$propertyLocationData = array(
+							'product_id' => $product->getId(),
+							'latitude' => $lat,
+							'longitude' => $lnt,
+							'created_at' => now(),
+							'update_at' => now(),
+						);
+            		$propertyLoaction = Mage::getModel('property/propertylocation');
+            		$propertyLoaction->setData($propertyLocationData);
+            		if(!empty($propertyLoactionObj)) {
+            			$propertyLoaction->setId($propertyLoactionObj->getLocationId());
+            		}
+            		$propertyLoaction->save();
+
+            		
+		            Mage::getSingleton('core/session')->addSuccess($this->__('Your place updated successfully'));
+		            $this->_redirect('*/*/show');
+		            return;
+	        	} catch (Exception $ex) {
+	        		Mage::getSingleton('core/session')->addError($this->__('Your place not updated.'));
+	            	$this->_redirect('*/*/edit', array('id' => $post["id"]));
+	        	}
+	        } else {
+	            Mage::getSingleton('core/session')->addError($this->__('Item not found.'));
+	            $this->_redirect('*/*/edit', array('id' => $post["id"]));
+	            return;
+	        }
+        } else {
+    		Mage::getSingleton('core/session')->addError($this->__('Your place not updated.'));
+        	$this->_redirect('*/*/edit', array('id' => $post["id"]));
+        }
+    }
+    
+	public function contactAction() {
+		$this->loadLayout();
+		$this->renderLayout();
+	}
+	
+	public function saveinboxAction() {
+		if ($data = $this->getRequest()->getPost()) {
+			$_product = Mage::getModel('catalog/product')->load($this->getRequest()->getParam('product_id'));
+			
+			$model = Mage::getModel('customerextend/cuspropmsg');		
+			$model->setData($data);
+			
+			try {
+				$model->setCreatedAt(now());
+				$model->setUpdateAt(now());
+				$model->setSenderId(Mage::getSingleton('customer/session')->getCustomer()->getId());
+				$model->setMessageType(1);
+				$model->save();
+				Mage::getSingleton('core/session')->addSuccess($this->__('Your message sent successfully.'));
+
+				$this->_redirectUrl($_product->getProductUrl());
+				return;
+            } catch (Exception $e) {
+                Mage::getSingleton('core/session')->addError($e->getMessage());
+                $this->_redirectUrl($_product->getProductUrl());
+                return;
+            }
+		}
+	}
+	
+	public function showAction() {
+		$this->loadLayout();
+		$this->renderLayout();
+	}
+	
+	public function statusAction() {
+        $status = $this->getRequest()->getParam('status');
+        $productId = $this->getRequest()->getParam('productid');
+        $product = Mage::getModel('catalog/product')->load($productId);
+        $storeId = Mage::app()->getStore()->getId();
+
+        $product->setStoreID($storeId)
+                ->setStatus($status)//1 = Enabled 2 = Disabled
+                ->save();
+        
+        echo 1;
+    }
+    
+    public function blockcalendarAction() {
+	    //owner permission
+        $customerId = Mage::getSingleton('customer/session')->getCustomer()->getId();
+        $entity_id = (int)$this->getRequest()->getParam('id');
+        $collection = Mage::getModel('catalog/product')->load($entity_id);
+        $customer_id = $collection->getUserId();
+        
+        if ($customerId != $customer_id) {
+            Mage::getSingleton('core/session')->addError($this->__("Access denied"));
+            $this->_redirect('property/index/show/');
+            return;
+        }
+        
+        $this->loadLayout();
+        $this->renderLayout();
+    }
+    
+    public function calendarviewAction() {
+        $productId = $_GET["productid"]; //To
+        $dateSplit = explode("__", $_GET["date"]);
+        $getDateDeatils = Mage::helper('property')->getDateDeatils($productId, $_GET["date"]);
+        
+        $blocked = $getDateDeatils[0];
+        $not_avail = $getDateDeatils[1];
+        $selectedArray = array();
+        $spe_avail = array();
+        
+        // calender price start
+        $_sp = array();
+        foreach($spe_avail as $key=>$value)
+        {
+            $avail = explode(",",$key);
+            foreach($avail as $_val){
+                 $spDay = (int) $_val;
+                $_sp[$spDay] = $value;
+            }
+         }
+        //end of calender price
+
+        $x = $dateSplit[0];
+        if ($x == "")
+            $x = date("n");
+            
+        $year = $dateSplit[1];
+        $date = strtotime("$year/$x/1");
+        $day = date("D", $date);
+        $m = date("F", $date);
+        $prev_year = $year;
+        $next_year = $year;
+        $prev_month = intval($x) - 1;
+        $next_month = intval($x) + 1;
+
+		// if current month is Decembe or January month navigation links have to be updated to point to next / prev years
+        if ($x == 12) {
+            $next_month = 1;
+            $next_year = $year + 1;
+        } elseif ($x == 1) {
+            $prev_month = 12;
+            $prev_year = $year - 1;
+        }
+
+        $totaldays = date("t", $date);
+
+        echo '<a class="pre_grid" href="javascript:void(0);" onclick="ajaxLoadCalendar(\'' . Mage::getBaseUrl() . 'property/index/calendarview/?date=' . $prev_month . '__' . $prev_year . '&productid=' . $productId . '\')" >previous</a>';
+        echo '<div class="date_grid">' . date("F, Y", $date) . '</div>';
+        echo '<a class="next_grid" href="javascript:void(0);" onclick="ajaxLoadCalendar(\'' . Mage::getBaseUrl() . 'property/index/calendarview/?date=' . $next_month . '__' . $next_year . '&productid=' . $productId . '\')" >next</a>';
+        echo "<table border = '1' cellspacing = '0'  bordercolor='blue' cellpadding ='2' class='calend'>
+                        <tr class='weekDays'>
+                        <th><font size = '2' face = 'tahoma'>Sun</font></th>
+                        <th><font size = '2' face = 'tahoma'>Mon</font></th>
+                        <th><font size = '2' face = 'tahoma'>Tue</font></th>
+                        <th><font size = '2' face = 'tahoma'>Wed</font></th>
+                        <th><font size = '2' face = 'tahoma'>Thu</font></th>
+                        <th><font size = '2' face = 'tahoma'>Fri</font></th>
+                        <th><font size = '2' face = 'tahoma'>Sat</font></th>
+                        </tr> ";
+        if ($day == "Sun")
+            $st = 1;
+        if ($day == "Mon")
+            $st = 2;
+        if ($day == "Tue")
+            $st = 3;
+        if ($day == "Wed")
+            $st = 4;
+        if ($day == "Thu")
+            $st = 5;
+        if ($day == "Fri")
+            $st = 6;
+        if ($day == "Sat")
+            $st = 7;
+
+        if ($st >= 6 && $totaldays == 31) {
+            $tl = 42;
+        } elseif ($st == 7 && $totaldays == 30) {
+            $tl = 42;
+        } else {
+            $tl = 35;
+        }
+
+        $ctr = 1;
+        $d = 1;
+
+        for ($i = 1; $i <= $tl; $i++) {
+            if ($ctr == 1)
+                echo "<tr class='blockcal'>";
+            if ($i >= $st && $d <= $totaldays) {
+                if (strtotime("$year-$x-$d") < strtotime(date("Y-n-j"))) {
+                    echo "<td align='center' class='previous days '><font size = '2' face = 'tahoma'>$d</font></td>";
+                } else {
+                    if (in_array("$year-$x-$d", $selectedArray)) {
+                        echo "<td class='selected days' align='center'><font size = '2' face = 'tahoma'>$d</font></td>";
+                    } else {
+                        $date = strtotime("$year/$x/$d");
+                        $tdDate = 'tdId' . '_' . date("m/d/Y", $date);
+                        if (in_array("$d", $blocked)) {
+                            echo "<td id=" . $tdDate . " class='normal days " . $d . " ' align='center' style='background-color:#E07272; cursor:context-menu;'><font size = '2' face = 'tahoma'>$d</font></td>";
+                        } else if (in_array("$d", $not_avail)) {
+                            echo "<td id=" . $tdDate . " class='normal days " . $d . " ' align='center'style='background-color:#F18200;color: black !important;' ><font size = '2' face = 'tahoma'>$d</font></td>";
+                        } else if(array_key_exists($d,$_sp)){
+                                echo "<td style='padding: 11px 23px;' id=" . $tdDate . " class='normal days " . $d . " ' align='center' ><font size = '2' face = 'tahoma'>$d</font><br><div style='width: 25px;font-size: 1.0em;text-align: right;'>".
+                                   Mage::app()->getLocale()->currency(Mage::app()->getStore()->getCurrentCurrencyCode())->getSymbol().Mage::helper('directory')->currencyConvert($_sp[$d],Mage::app()->getStore()->getBaseCurrencyCode(), Mage::app()->getStore()->getCurrentCurrencyCode())."</div></td>";
+                            }else{
+                            echo "<td id=" . $tdDate . " class='normal availableDay days " . $d . " ' align='center' onclick='displayForm()' ><font size = '2' face = 'tahoma'>$d</font></td>";
+                        }
+                    }
+                }
+                $d++;
+            } else {
+                echo "<td>&nbsp</td>";
+            }
+            $ctr++;
+
+            if ($ctr > 7) {
+                $ctr = 1;
+                echo "</tr>";
+            }
+        }
+        echo '</table>';
+        echo '<input type="hidden" value="' . $x . '" id="currentMonth" />';
+        echo '<input type="hidden" value="' . $year . '" id="currentYear" />';
+    }
+}

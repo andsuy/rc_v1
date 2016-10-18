@@ -1,0 +1,9 @@
+a:5:{i:0;s:231:"Error in file: "/home/sillp2014/public_html/roomcrunch/app/code/local/Si/Property/sql/property_setup/mysql4-upgrade-0.1.1-0.1.2.php" - SQLSTATE[42S01]: Base table or view already exists: 1050 Table 'property_special' already exists";i:1;s:1074:"#0 /home/sillp2014/public_html/roomcrunch/app/code/core/Mage/Core/Model/Resource/Setup.php(645): Mage::exception('Mage_Core', 'Error in file: ...')
+#1 /home/sillp2014/public_html/roomcrunch/app/code/core/Mage/Core/Model/Resource/Setup.php(437): Mage_Core_Model_Resource_Setup->_modifyResourceDb('upgrade', '0.1.1', '0.1.2')
+#2 /home/sillp2014/public_html/roomcrunch/app/code/core/Mage/Core/Model/Resource/Setup.php(320): Mage_Core_Model_Resource_Setup->_upgradeResourceDb('0.1.1', '0.1.2')
+#3 /home/sillp2014/public_html/roomcrunch/app/code/core/Mage/Core/Model/Resource/Setup.php(235): Mage_Core_Model_Resource_Setup->applyUpdates()
+#4 /home/sillp2014/public_html/roomcrunch/app/code/core/Mage/Core/Model/App.php(417): Mage_Core_Model_Resource_Setup::applyAllUpdates()
+#5 /home/sillp2014/public_html/roomcrunch/app/code/core/Mage/Core/Model/App.php(343): Mage_Core_Model_App->_initModules()
+#6 /home/sillp2014/public_html/roomcrunch/app/Mage.php(684): Mage_Core_Model_App->run(Array)
+#7 /home/sillp2014/public_html/roomcrunch/index.php(87): Mage::run('', 'store')
+#8 {main}";s:3:"url";s:81:"/roomcrunch/index.php/admin/dashboard/index/key/85800827dcabef25ef5e70b8f34ddda1/";s:11:"script_name";s:21:"/roomcrunch/index.php";s:4:"skin";s:7:"default";}

@@ -1,0 +1,342 @@
+<?php
+class Si_Property_Model_Observer
+{
+	public function catalogProductLoadAfter(Varien_Event_Observer $observer)
+	{
+		$action = Mage::app()->getFrontController()->getAction();
+		if ($action->getFullActionName() == 'checkout_cart_add')
+		{
+			$product = $observer->getProduct();
+			if($product->getAttributeSetId() == 9) {
+				$additionalOptions = array();
+				// assuming you are posting your custom form values in an array called extra_options...
+				if ($options = $action->getRequest()->getParam('checkin')) {
+					// add to the additional options array
+					if ($additionalOption = $product->getCustomOption('checkin')) {
+						$additionalOptions = (array) unserialize($additionalOption->getValue());
+					}
+					foreach ($options as $key => $value) {
+						$additionalOptions[] = array(
+							'label' => $key,
+							'value' => $value,
+						);
+					}
+				}
+				if ($options = $action->getRequest()->getParam('checkout')) {
+					// add to the additional options array
+					if ($additionalOption = $product->getCustomOption('checkout')) {
+						$additionalOptions = (array) unserialize($additionalOption->getValue());
+					}
+					foreach ($options as $key => $value) {
+						$additionalOptions[] = array(
+							'label' => $key,
+							'value' => $value,
+						);
+					}
+				}
+				if ($options = $action->getRequest()->getParam('accommodate')) {
+					// add to the additional options array
+					if ($additionalOption = $product->getCustomOption('accommodate')) {
+						$additionalOptions = (array) unserialize($additionalOption->getValue());
+					}
+					foreach ($options as $key => $value) {
+						$additionalOptions[] = array(
+							'label' => $key,
+							'value' => $value,
+						);
+					}
+				}
+				// add the additional options array with the option code additional_options
+				$product->addCustomOption('additional_options', serialize($additionalOptions));
+			}
+		}
+	}
+
+	public function salesConvertQuoteItemToOrderItem(Varien_Event_Observer $observer)
+	{
+		$quoteItem = $observer->getItem();
+		if ($additionalOptions = $quoteItem->getOptionByCode('additional_options')) {
+			$orderItem = $observer->getOrderItem();
+			$options = $orderItem->getProductOptions();
+			$options['additional_options'] = unserialize($additionalOptions->getValue());
+			$orderItem->setProductOptions($options);
+		}
+	}
+
+	public function checkoutCartProductAddAfter(Varien_Event_Observer $observer)
+	{
+		$action = Mage::app()->getFrontController()->getAction();
+	    if ($action->getFullActionName() == 'sales_order_reorder')
+	    {
+	        $item = $observer->getQuoteItem();
+	        $buyInfo = $item->getBuyRequest();
+	        if ($options = $buyInfo->getMchart())
+	        {
+	            $additionalOptions = array();
+	            if ($additionalOption = $item->getOptionByCode('additional_options'))
+	            {
+	                $additionalOptions = (array) unserialize($additionalOption->getValue());
+	            }
+	            foreach ($options as $key => $value)
+	            {
+	                $additionalOptions[] = array(
+	                    'label' => $key,
+	                    'value' => $value,
+	                );
+	            }
+	            $item->addOption(array(
+	                'code' => 'additional_options',
+	                'value' => serialize($additionalOptions)
+	            ));
+	        }
+	    }
+	}
+	public function checkoutCartSaveBefore(Varien_Event_Observer $observer)
+	{
+		//echo '<pre>'; print_r($observer); echo '</pre>'; exit;
+		$cart = $observer->getEvent()->getCart();
+		foreach($cart->getQuote()->getAllItems() as $item) {
+        	$options = $item->getProduct()->getCustomOptions();
+			$data = array();
+			if($item->getProduct()->getAttributeSetId() == 9) {
+				$additionalOptions = array();
+				if (isset($options['checkin'])) {
+					$data['checkin'] = $options['checkin']->getValue();	
+			        $additionalOptions[] = array(
+						 'code' => 'additional_options',
+						 'label' => 'Checkin',
+						 'value' => $data['checkin']
+						);
+				}
+				if (isset($options['checkout'])) {
+					$data['checkout'] = $options['checkout']->getValue();	
+			        $additionalOptions[] = array(
+						 'code' => 'additional_options',
+						 'label' => 'Checkout',
+						 'value' => $data['checkout']
+						);
+				}
+				if (isset($options['accommodate'])) {
+					$data['accommodate'] = $options['accommodate']->getValue();	
+			        $additionalOptions[] = array(
+						 'code' => 'additional_options',
+						 'label' => 'Accommodate',
+						 'value' => $data['accommodate']
+						);
+				}
+				$item->addOption(array(
+				  'code' => 'additional_options',
+				  'value' => serialize($additionalOptions),
+				));
+			}
+        }
+	}
+	
+	public function processBookingAfterCheckout(Varien_Event_Observer $observer)
+	{
+		$resource = Mage::getSingleton('core/resource');
+		$write = $resource->getConnection('core_write');
+     	$table = $resource->getTableName('sales_flat_quote_item_option');
+     	$table2 = $resource->getTableName('property_availability');
+     	
+		$order = $observer->getEvent()->getOrder();
+		$quote = $observer->getEvent()->getQuote();
+		
+		$cartItems = $quote->getAllVisibleItems();
+		foreach ($cartItems as $item) {
+		    //Mage::log('QuoteId: ' .$quote->getId() . '  QuoteItem: ' .$item->getItemId());
+		    $getCheckinSql = "SELECT value FROM ".$table." WHERE item_id = '".$item->getItemId()."' AND code = 'checkin'";
+		    $checkin = $write->fetchOne($getCheckinSql);
+		    $getCheckoutSql = "SELECT value FROM ".$table." WHERE item_id = '".$item->getItemId()."' AND code = 'checkout'";
+		    $checkout = $write->fetchOne($getCheckoutSql);
+		    
+		    if(Mage::getStoreConfig('property_section/general/enable')) { // check property function enable
+		    	
+		    	$start = strtotime($checkin);
+                $end = strtotime($checkout);
+                $daysBetween = ceil(abs($end - $start) / 86400);
+                
+                /***** add/update block/availability date starts *****/
+                for($i=0; $i<$daysBetween; $i++) {
+					$day = date('d',strtotime($checkin . "+$i days"));
+					$month = date('n',strtotime($checkin . "+$i days"));
+					$year = date('Y',strtotime($checkin . "+$i days"));
+					
+					$data = array(
+								'product_id' => $item->getProductId(),
+								'booking_type' => 2,
+								'booking_year' => $year,
+								'booking_month' => $month,
+								'created_at' => now(),
+								'update_at' => now(),
+							);
+					$checkCollection = Mage::getModel('property/propertyavailablity')->getCollection()
+										->addFieldToFilter('product_id', $item->getProductId())
+										->addFieldToFilter('booking_year', $year)
+										->addFieldToFilter('booking_month', $month);
+					if($checkCollection->count() > 0) {
+						foreach ($checkCollection as $_check) {
+							//Mage::log('Check: ' . $_check->getAvailableId());
+							$availableId = $_check->getAvailableId();
+							break;
+						}
+						
+						$available = Mage::getModel('property/propertyavailablity')->load($availableId);
+						$preBlockDate = $available->getBlockDate() . ',' . $day;
+						//Mage::log('Block date: ' . $preBlockDate);
+						$model = Mage::getModel('property/propertyavailablity');		
+						$model->setData($data)
+							->setId($availableId);
+						$model->setBlockDate($preBlockDate);
+						$model->save();
+						
+					} else {
+						$available = Mage::getModel('property/propertyavailablity');
+						$available->setData($data);
+						$available->setBlockDate($day);
+						$available->save();
+					}
+                }
+                /***** add/update block/availability date ends *****/
+                
+                /**** update property booking details start ****/
+                
+                $getAccommodateSql = "SELECT value FROM ".$table." WHERE item_id = '".$item->getItemId()."' AND code = 'accommodate'";
+		    	$accommodate = $write->fetchOne($getAccommodateSql);
+		    	$product = Mage::getModel('catalog/product')->load($item->getProductId());
+		    	$commissionFeePercentage = Mage::getStoreConfig('property_section/general/commission_fee');
+            	if(!empty($commissionFeePercentage)) {
+	            	$commissionFee = (($order->getSubtotal() * $commissionFeePercentage) / 100);
+            	}
+            	
+            	$ordered_items = $order->getAllItems();
+            	foreach($ordered_items as $item) {
+	            	$orderItemId = $item->getItemId();
+	            	break;
+            	}
+            	
+            	$bookingData = array(
+							'product_id' => $item->getProductId(),
+							'host_id' => $product->getUserId(),
+							'guest_id' => $order->getCustomerId(),
+							'checkin' => $checkin,
+							'checkout' => $checkout,
+							'accomodates' => $accommodate,
+							'subtotal' => $order->getSubtotal(),
+							'host_fee' => $commissionFee,
+							'service_fee' => $order->getFeeAmount(),
+							'total' => $order->getGrandTotal(),
+							'order_id' => $order->getId(),
+							'order_item_id' => $orderItemId,
+							'order_status' => $order->getStatus(),
+							'booking_status' => 0,
+							'secure_key' => '',
+							'key_status' => '',
+							'base_currency_code' => $order->getBaseCurrencyCode(),							
+							'order_currency_code' => $order->getOrderCurrencyCode(),
+							'created_at' => now(),
+							'update_at' => now()						
+						);
+						
+				$booking = Mage::getModel('booking/booking');
+				$booking->setData($bookingData);
+				$booking->save();
+            
+                /**** update property booking details end ****/
+                
+                
+                /**** send host the booking notification mail starts ****/
+                
+                //get host details
+                $host = Mage::getModel('customer/customer')->load($product->getUserId());
+		        $storeId = Mage::app()->getStore()->getStoreId();
+		        //Mage::log('Check: ' . $host . ' -- ' . $storeId);
+		        
+		        if (Mage::helper('sales')->canSendNewOrderEmail($storeId)) {
+		            //Mage::log('test: ');
+			        // Get the destination email addresses to send copies to
+			        $copyTo = $this->_getEmails('sales_email/order/copy_to');
+			        $copyMethod = Mage::getStoreConfig('sales_email/order/copy_method', $storeId);
+			
+			        // Start store emulation process
+			        $appEmulation = Mage::getSingleton('core/app_emulation');
+			        $initialEnvironmentInfo = $appEmulation->startEnvironmentEmulation($storeId);
+			
+			        try {
+			            // Retrieve specified view block from appropriate design package (depends on emulated store)
+			            $paymentBlock = Mage::helper('payment')->getInfoBlock($order->getPayment())
+			                ->setIsSecureMode(true);
+			            $paymentBlock->getMethod()->setStore($storeId);
+			            $paymentBlockHtml = $paymentBlock->toHtml();
+			        } catch (Exception $exception) {
+			            // Stop store emulation process
+			            $appEmulation->stopEnvironmentEmulation($initialEnvironmentInfo);
+			            throw $exception;
+			        }
+			
+			        // Stop store emulation process
+			        $appEmulation->stopEnvironmentEmulation($initialEnvironmentInfo);
+			
+			        // Retrieve corresponding email template id and customer name
+		            $templateId = Mage::getStoreConfig('property_section/custom_email/hostbookinginfo_template', $storeId);
+		            $customerName = $order->getCustomerName();
+
+					try {
+				        $mailer = Mage::getModel('core/email_template_mailer');
+				        $emailInfo = Mage::getModel('core/email_info');
+				        $emailInfo->addTo($host->getEmail(), $host->getName());
+				        if ($copyTo && $copyMethod == 'bcc') {
+				            // Add bcc to customer email
+				            foreach ($copyTo as $email) {
+				                $emailInfo->addBcc($email);
+				            }
+				        }
+				        $mailer->addEmailInfo($emailInfo);
+				
+				        // Email copies are sent as separated emails if their copy method is 'copy'
+				        if ($copyTo && $copyMethod == 'copy') {
+				            foreach ($copyTo as $email) {
+				                $emailInfo = Mage::getModel('core/email_info');
+				                $emailInfo->addTo($email);
+				                $mailer->addEmailInfo($emailInfo);
+				            }
+				        }
+				
+				        // Set all required params and send emails
+				        $mailer->setSender(Mage::getStoreConfig('sales_email/order/identity', $storeId));
+				        $mailer->setStoreId($storeId);
+				        $mailer->setTemplateId($templateId);
+				        $mailer->setTemplateParams(array(
+				                'order'        => $order,
+				                'billing'      => $order->getBillingAddress(),
+				                'payment_html' => $paymentBlockHtml,
+				                'host_name'	   => $host->getFirstname()
+				            )
+				        );
+				        $mailer->send();
+		    	    } catch (Exception $e) {
+					    throw $e;
+					}
+		        }
+                /**** send host the booking notification mail ends ****/
+		    }
+		}
+	}
+	
+	// Email helper methods
+	protected function _getEmails($configPath)
+    {
+        $data = Mage::getStoreConfig($configPath, Mage::app()->getStore()->getStoreId());
+        if (!empty($data)) {
+            return explode(',', $data);
+        }
+        return false;
+    }
+    
+    public function updateBookingOrderStatus(Varien_Event_Observer $observer) {
+    	$order = $observer->getEvent()->getOrder();
+    	$booking = Mage::getModel('booking/booking')->load($order->getId(), 'order_id');
+		$booking->setOrderStatus($order->getStatus());
+		$booking->save();
+    }
+}

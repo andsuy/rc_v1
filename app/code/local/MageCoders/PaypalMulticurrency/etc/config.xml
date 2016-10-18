@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!-- 
+/**
+ * @author   MageCoders
+ * @package    MageCoders_PaypalMulticurrency
+ */
+ -->
+<config>
+    <modules>
+        <MageCoders_PaypalMulticurrency>
+            <version>2.0.0</version>
+        </MageCoders_PaypalMulticurrency>
+    </modules>
+     <global>
+        <models>
+            <paypalmulticurrency>
+                <class>MageCoders_PaypalMulticurrency_Model</class>
+            </paypalmulticurrency>
+			<paypal>
+				<rewrite>
+					<standard>MageCoders_PaypalMulticurrency_Model_Standard</standard>
+				</rewrite>
+				<rewrite>
+					<cart>MageCoders_PaypalMulticurrency_Model_Cart</cart>
+				</rewrite>
+			</paypal>
+			
+			<sales>
+				<rewrite>
+					<order_payment>MageCoders_PaypalMulticurrency_Model_Sales_Order_Payment</order_payment>
+				</rewrite>
+			</sales>
+        </models>
+		<helpers>
+			 <paypalmulticurrency>
+                <class>MageCoders_PaypalMulticurrency_Helper</class>
+             </paypalmulticurrency>		
+		</helpers>
+    </global>
+</config>

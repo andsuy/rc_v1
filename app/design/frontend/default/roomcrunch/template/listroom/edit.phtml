@@ -1,0 +1,214 @@
+<?php
+$room = $this->getRoom();
+
+$propertytypeId = Mage::helper('property')->getPropertyTypeAttrId();
+$propertytypeAttribute = Mage::getModel('eav/config')->getAttribute('catalog_product', $propertytypeId);
+$select_protype = '<option value="">'.$this->__('Select').'</option>';
+foreach ($propertytypeAttribute->getSource()->getAllOptions() as $option) {
+    $value = $option['value'];
+    if($value != '') {
+        $PropertyType[$value] = $option['label'];
+        $select = ($option['value'] == $room->getPropertyType()) ? ' selected="selected"' : '';
+        $select_protype .= "<option value='" . $option['value'] . "'". $select .">" . $option['label'] . "</option>";
+    }
+}
+
+$privacyId = Mage::helper('property')->getRoomTypeAttrId();
+$privacyAttribute = Mage::getModel('eav/config')->getAttribute('catalog_product', $privacyId);
+$privacy_select = '<option value="">'.$this->__('Select').'</option>';
+foreach ($privacyAttribute->getSource()->getAllOptions() as $privacy_option) {
+    $privacy_value = $privacy_option['value'];
+
+    if($privacy_value != '') {
+        $Privacy[$value] = $privacy_option['label'];
+		$select = ($privacy_option['value'] == $room->getRoomType()) ? ' selected="selected"' : '';
+        $privacy_select .= "<option value='" . $privacy_option['value'] . "'". $select .">" . $privacy_option['label'] . "</option>";
+    }
+}
+
+$amenityId = Mage::helper('property')->getAmenitiesAttrId();
+$amenityAttribute = Mage::getModel('eav/config')->getAttribute('catalog_product', $amenityId);
+
+$countryList = Mage::getResourceModel('directory/country_collection')
+                    ->loadData()
+                    ->toOptionArray(false);
+foreach ($countryList as $country) {
+    $value = $country['value'];
+    if ($value != '') {
+    	$select = ($country['label'] == $room->getCountry()) ? ' selected="selected"' : '';
+        $countryselect .= "<option value='" . $country['label'] . "'". $select .">" . $country['label'] . "</option>";
+    }
+}
+?>
+<div class="my-account">
+	<div class="page-title">
+		<h1><?php echo $this->__('Manage Your Requirement')?></h1>
+	</div>
+	<form id="listingform" method="post" name="listingform" action="<?php echo $this->getUrl('listroom/index/post')?>">
+		<input type="hidden" name="room_id" value="<?php echo $room->getListroomId() ?>" />
+		<div class="fieldset room_edit_form">
+			<h2><?php echo $this->__('About Your Requirement')?></h2>
+			<ul class="form-list_inner list_ul">
+				<li class="listheading"><h1><?php echo $this->__('Listing Type limit')?></h1></li>
+				<p class="required right">* <?php echo $this->__('Required Fields')?></p>
+				<li>
+					<div class="field">
+						<div class="selectproperty">
+							<label class="required left lable_inner" for="proptype"> <?php echo $this->__('Property Type')?> <em>*</em></label>
+							<div class="floatleft">
+								<select class="select select input-text required-entry input-text_pro" name="property_type" id="property_type"><?php echo $select_protype; ?></select>
+							</div>
+						</div>
+					</div>
+					<div class="field">
+						<div class="selectprivacy">
+							<label class="required left lable_inner" for="room_type"> <?php echo $this->__('Room Type')?> <em>*</em></label>
+							<div class="floatleft">
+								<select class="select select input-text required-entry input-text_room" name="room_type" id="room_type"><?php echo $privacy_select; ?></select>
+							</div>
+						</div>
+					</div>
+				</li>
+				
+            	
+            	<li class="listheading"><h1>Amenities</h1></li>
+            	<li style="padding:5px;">
+                  <?php
+                  $totalAmenity = count($amenityAttribute->getSource()->getAllOptions(true, true));
+                  $amenityArray = explode(',', $room->getAmenity());
+                  ?>
+                  <ul id="amenities-value">
+                  <?php
+                  foreach ($amenityAttribute->getSource()->getAllOptions() as $amenity) {
+                  	$value = $amenity['value'];
+                    if($value !='') {
+                        $PropertyType[$value] = $amenity['label'];
+                        $check = (in_array($amenity['label'], $amenityArray)) ? ' checked="checked"' : '';
+              	?>
+                        <li class="checkbox lable_inner checkbox_inner" style="border:none; padding:5px;">
+                    	<input style="float:left;margin:4px;" type="checkbox" name="amenity[]" id="amenity[]" value="<?php echo $amenity['label']; ?>" <?php echo $check; ?> /> <?php echo $amenity['label']; ?>
+                        </li>
+              	<?php
+                    }
+                  }
+	            ?>
+	              </ul>
+	              <div class="clearer"></div>
+	            </li>
+	            				
+				<li class="listheading"><h1><?php echo $this->__('Details') ?></h1></li>
+				<li>
+ 					<div class="field">
+ 						<div class="input-box_inner">
+	                    	<label class="required left lable_inner" for="title"><?php echo $this->__('Title')?> <em>*</em></label>
+		                    <div class="floatleft">
+			                    <input type="text" maxlength="100" class="input-text required-entry validate-length minimum-length-4 maximum-length-35 input-text_inner" title="<?php echo $this->__('Title')?>" id="title" name="title" value="<?php echo $room->getTitle() ?>">
+			                    <span><?php echo $this->__('Property title should contains 4-35 letters.'); ?></span>
+		                    </div>
+	                    </div>
+ 					</div>
+ 					<div class="field input-box input-box_inner">
+						<label class="required lable_inner left" for="budget_min"> <?php echo $this->__('Budget Min/Night')?> <em>*</em></label>
+						<div class="floatleft">
+							<input type="text" class="input-text required-entry validate-greater-than-zero input-text_price " title="<?php echo $this->__('Budget Min/Night')?>" id="budget_min" name="budget_min" value="<?php echo number_format($room->getBudgetMin(), 2) ?>">
+							<span> <?php echo $this->__('USD(Enter price in  US Dollar)')?></span>
+						</div>
+                	</div>
+                	<div class="field input-box input-box_inner">
+						<label class="required lable_inner left" for="budget_max"> <?php echo $this->__('Budget Max/Night')?> <em>*</em></label>
+						<div class="floatleft">
+							<input type="text" class="input-text required-entry validate-greater-than-zero input-text_price " title="<?php echo $this->__('Budget Max/Night')?>" id="budget_max" name="budget_max" value="<?php echo number_format($room->getBudgetMax(), 2) ?>">
+							<span> <?php echo $this->__('USD(Enter price in  US Dollar)')?></span>
+						</div>
+                	</div>
+                	
+                	
+                	<div class="field">
+ 						<div class="input-box_inner">
+	                    	<label class="required left lable_inner" for="accommodates "><?php echo $this->__('Accommodates ')?> <em>*</em></label>
+		                    <div class="floatleft">
+		                    	<input type="text" class="input-text required-entry input-text_inner" title="<?php echo $this->__('Accommodates')?>" id="accommodates" name="accommodates" value="<?php echo $room->getAccommodates() ?>">
+		                    	<span><?php echo $this->__('This refers number of guest.'); ?></span>
+		                   	</div>
+	                    </div>
+ 					</div>
+ 					<div class="field">
+ 						<div class="input-box_inner">
+	                    	<label class="required left lable_inner" for="from_date "><?php echo $this->__('From date ')?> <em>*</em></label>
+		                    <div class="floatleft">
+		                    	<input type="text" class="input-text required-entry input-text_inner" title="<?php echo $this->__('From date')?>" id="from" name="from" placeholder="mm/dd/yyyy" autocomplete="off" value="<?php echo $room->getFrom() ?>" style="width:150px !important;">
+		                   	</div>
+	                    </div>
+ 					</div>
+ 					<div class="field">
+ 						<div class="input-box_inner">
+	                    	<label class="required left lable_inner" for="to_date "><?php echo $this->__('To date ')?> <em>*</em></label>
+		                    <div class="floatleft">
+		                    	<input type="text" class="input-text required-entry input-text_inner" title="<?php echo $this->__('To date')?>" id="to" name="to" placeholder="mm/dd/yyyy" autocomplete="off" value="<?php echo $room->getTo() ?>" style="width:150px !important;">
+		                   	</div>
+	                    </div>
+ 					</div>
+ 					
+ 					
+                	<div class="field input-box input-box_inner">
+	                    <label for="description" class="required left lable_inner"><?php echo $this->__('Description') ?> <em>*</em></label>
+	                    <div class="floatleft">
+	                    	<textarea name="description" id="description" title="<?php echo $this->__('Description') ?>" class="required-entry input-text input-text_high" cols="5" rows="5"><?php echo $room->getDescription() ?></textarea>
+	                    	<div class="clearer"></div>
+	                    </div>
+	                </div>
+	                
+                	<div class="field input-box input-box_inner">
+	                    <label for="keywords" class="required left lable_inner"><?php echo $this->__('Keywords') ?> <em>*</em></label>
+	                    <div class="floatleft">
+	                    	<textarea name="keywords" id="keywords" title="<?php echo $this->__('Keywords') ?>" class="required-entry input-text input-text_high" cols="5" rows="5"><?php echo $room->getKeywords() ?></textarea>
+	                    	<div class="clearer"></div>
+	                    	<span><?php echo $this->__('Add comma(,) seperated keywords. Eg: ocean side, transit')?></span>
+	                    </div>
+	                </div>
+	                
+                	<div class="field input-box input-box_inner">
+	                  <label for="locality" class="required lable_inner left"> <?php echo $this->__('Locality') ?> <em>*</em></label>
+						<div class="floatleft">
+	                    	<input name="locality" id="locality" title="<?php echo $this->__('Locality') ?>" class="input-text required-entry input-text_city" type="text" value="<?php echo $room->getLocality() ?>"/>
+						</div>
+	                </div>
+                
+                	<div class="field input-box input-box_inner">
+	                  <label for="city" class="required lable_inner left"> <?php echo $this->__('City') ?> <em>*</em></label>
+						<div class="floatleft">
+	                    	<input name="city" id="city" title="<?php echo $this->__('City') ?>" class="input-text required-entry input-text_city" type="text" value="<?php echo $room->getCity() ?>"/>
+						</div>
+                	</div>
+                  <div class="field input-box input-box_inner">
+                  		<label for="state" class="required lable_inner left"> <?php echo $this->__('State / Province / Region') ?> <em>*</em></label>
+						<div class="floatleft">
+                    		<input name="state" id="state" title="<?php echo $this->__('State / Province / Region') ?>" class="input-text required-entry input-text_state" type="text" value="<?php echo $room->getState() ?>"/>
+						</div>					
+                </div>
+
+                	<div class="field">
+                         <div class="selectpropcountry">
+                            <label for="country" class="required lable_inner left">  <?php echo $this->__('Country') ?> <em>*</em></label>
+                            <div class="floatleft">
+                            	<select id="country" name="country"  class="select select input-text required-entry input-text_country">
+                                    <option value=""><?php echo $this->__('Select your Country') ;?></option>
+                                    <?php echo $countryselect; ?>
+                             	</select>
+                            </div>
+                        </div>
+                    </div>
+            	</li>
+			</ul>
+			<div class="buttons-set">
+		        <p class="required ">* <?php echo $this->__('Required Fields')?></p>
+		         <button class="button" title="<?php echo $this->__('Submit your requiremnts')?>" type="submit"><?php echo $this->__('Submit your requiremnts')?></button>
+		    </div>
+		</div>
+	</form>
+</div>
+<script type="text/javascript">
+    //<![CDATA[
+    var listingForm = new VarienForm('listingform', true);
+    //]]>
+</script>

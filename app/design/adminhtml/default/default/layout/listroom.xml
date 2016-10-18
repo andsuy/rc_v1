@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<layout version="0.1.0">
+  <listroom_adminhtml_listroom_index>
+	<reference name="content">
+	  <block type="listroom/adminhtml_listroom" name="listroom" />
+	</reference>
+  </listroom_adminhtml_listroom_index>
+</layout>

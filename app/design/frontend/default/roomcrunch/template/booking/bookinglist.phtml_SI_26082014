@@ -1,0 +1,92 @@
+<?php echo $this->getMessagesBlock()->getGroupedHtml() ?>
+<?php $collection = $this->getCollection(); ?>
+<div class="page-title">
+    <h1><?php echo $this->__('Manage Bookings') ?></h1>
+</div>
+<?php echo $this->getPagerHtml(); ?>
+<?php if($collection->getSize()): ?>
+<table class="data-table" id="manage_booking">
+    <thead>
+        <tr>
+            <th><?php echo $this->__('Booking #') ?></th>
+            <th style="width:200px;"><?php echo $this->__('Property') ?></th>
+            <th><?php echo $this->__('Guest Name') ?></th>
+            <th><?php echo $this->__('Order Status') ?></th>
+            <th><?php echo $this->__('Booking Status') ?></th>
+            <th><span class="nobr"><?php echo $this->__('Created At') ?></span></th>
+         	<th style="text-align:center; width:120px;"><?php echo $this->__('Action') ?></th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php $_odd = ''; ?>
+        <?php foreach ($collection as $_obj): ?>
+        <?php
+        	//echo '<pre>'; print_r($_obj->getData()); echo '</pre>';
+        	$order = $this->getOrder($_obj->getOrderId());
+        	//$product = $this->getProduct($_obj->getProductId());
+        	$item = Mage::getModel('sales/order_item')->load($_obj->getOrderItemId());
+        	//echo '<pre>'; print_r($item->getData()); echo '</pre>';
+        	$guest = $this->getGuest($_obj->getGuestId());
+        ?>
+        <tr>
+            <td>
+            	<span class="nobr"><a href="<?php echo $this->getUrl('booking/index/view', array('id' => $_obj->getBookingId()))?>" title="Click to View Details" class="info_trigger"><?php echo $order->getIncrementId() ?></a></span>
+            	<div class="booking_info_details" style="display:none;">
+					<dl class="item-options">
+						<dt>Checkin</dt>
+						<dd><?php echo date('n/j/Y', strtotime($_obj->getCheckin())) ?></dd>
+						<dt>Checkout</dt>
+						<dd><?php echo date('n/j/Y', strtotime($_obj->getCheckout())) ?></dd>
+						<dt>Accommodate</dt>
+						<dd><?php echo $_obj->getAccomodates() ?></dd>
+					</dl>
+            	</div>
+            </td>
+			<td style="width:200px;"><a href="<?php echo $this->getUrl('booking/index/property', array('pid' => $_obj->getProductId()))?>"><?php echo $item->getName() ?></a></td>
+			<td><?php echo $guest->getName() ?></td>
+            <td><i><a href="<?php echo $this->getUrl('sales/order/view', array('order_id' => $order->getId())) ?>" title="View Order"><?php echo $order->getStatusLabel() ?></a></i></td>
+            <td><i><?php echo $this->getBookingStatusLabel($_obj->getBookingStatus()) ?></i></td>
+            <td><?php echo date('n/j/Y', strtotime($_obj->getCreatedAt())) ?></td>
+            <td style="text-align:center; width:120px;">
+            	<span class="nobr">
+            		<?php if($_obj->getBookingStatus() == 0) { ?>
+            		<button class="button" type="button" onclick="return processAction('Are you sure to cancel the booking?', '<?php echo $this->getUrl('booking/index/cancel', array('id' => $_obj->getBookingId()))?>')">Cancel</button>
+            		<button class="button" type="button" onclick="return processAction('Are you sure to confirm the booking?', '<?php echo $this->getUrl('booking/index/confirm', array('id' => $_obj->getBookingId()))?>')">Confirm</button>
+            		<?php } else { ?>
+            		&nbsp; - &nbsp;
+            		<?php } ?>
+            	</span>
+            </td>
+        </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
+<script type="text/javascript">decorateTable('manage_booking');</script>
+<?php echo $this->getPagerHtml(); ?>
+<script type="text/javascript">
+$j(document).ready(function(){
+	$j('.info_trigger').mouseover(function() {
+		$j( ".info_trigger" ).mousemove(function( event ) {
+			$j('.booking_info_details', $j(this).parent().parent()).css({
+						'top': event.pageY+10,
+						'left': event.pageX+10
+					})
+					.show();
+		});
+	});
+	$j('.info_trigger').mouseout(function() {
+		$j('.booking_info_details').hide();
+	});
+});
+
+function processAction(msg, url) {
+	var c = confirm(msg);
+	if(!c) {
+		return false;
+	}
+	window.location.href = url;
+}
+</script>
+<?php else: ?>
+    <div class="norecords"><h2><?php echo $this->__('No Records')?></h2></div>
+<?php endif ?>

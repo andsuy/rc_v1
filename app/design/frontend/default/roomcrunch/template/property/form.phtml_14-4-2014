@@ -1,0 +1,572 @@
+<?php
+$properyTypeId = Mage::helper('property')->getPropertyTypeAttrId();
+$roomTypeId = Mage::helper('property')->getRoomTypeAttrId();
+$amenitiesId = Mage::helper('property')->getAmenitiesAttrId();
+$cancellationPolicyId = Mage::helper('property')->getCancellationPolicyAttrId();
+$restrictionsId = Mage::helper('property')->getRestrictionsAttrId();
+$bedTypeId = Mage::helper('property')->getBedTypeAttrId();
+
+$propertyTypeAttribute = Mage::getModel('eav/config')->getAttribute('catalog_product', $properyTypeId);
+$roomTypeAttribute = Mage::getModel('eav/config')->getAttribute('catalog_product', $roomTypeId);
+$amenitiesAttribute = Mage::getModel('eav/config')->getAttribute('catalog_product', $amenityId);
+$cancellationPolicyAttribute = Mage::getModel('eav/config')->getAttribute('catalog_product', $cancellationPolicyId);
+$restrictionsAttribute = Mage::getModel('eav/config')->getAttribute('catalog_product', $restrictionsId);
+$bedTypeAttribute = Mage::getModel('eav/config')->getAttribute('catalog_product', $bedTypeId);
+
+$currencyCountry = Mage::app()->getLocale()->currency(Mage::app()->getStore()->getBaseCurrencyCode())->getName();
+$currencySymbol = Mage::app()->getLocale()->currency(Mage::app()->getStore()->getBaseCurrencyCode())->getShortName();
+
+/*$PropertyType = array();
+$select_protype = '<option value="">'.$this->__('Select').'</option>';
+$privacy_select = '<option value="">'.$this->__('Select').'</option>';
+$countryList = Mage::getResourceModel('directory/country_collection')
+                    ->loadData()
+                    ->toOptionArray(false);
+            foreach ($countryList as $country) {
+    $value = $country['value'];
+
+    if ($value != '') {
+
+        $countryselect .= "<option value='" . $country['label'] . "'>" . $country['label'] . "</option>";
+    }
+}
+
+$banner = Mage::getStoreConfig('airhotels/custom_banner/enable_slider_hoster');
+
+foreach ($propertytypeAttribute->getSource()->getAllOptions() as $option) {
+    $value = $option['value'];
+    if($value != '') {
+        $PropertyType[$value] = $option['label'];
+        $select_protype .= "<option value='" . $option['value'] . "'>" . $option['label'] . "</option>";
+    }
+}
+foreach ($privacyAttribute->getSource()->getAllOptions() as $privacy_option) {
+    $privacy_value = $privacy_option['value'];
+
+    if($privacy_value != '') {
+        $Privacy[$value] = $privacy_option['label'];
+
+        $privacy_select .= "<option value='" . $privacy_option['value'] . "'>" . $privacy_option['label'] . "</option>";
+    }
+}
+foreach ($cancelpolicyAttribute->getSource()->getAllOptions() as $cancelpolicy_option) {
+    $cancelpolicy_value = $cancelpolicy_option['value'];
+
+    if($cancelpolicy_value != '') {
+
+
+        $cancelpolicy_select .= "<option value='" . $cancelpolicy_option['value'] . "'>" . $cancelpolicy_option['label'] . "</option>";
+    }
+}
+
+
+foreach ($bedtypeAttribute->getSource()->getAllOptions() as $bedtype_option) {
+    $bedtype_value = $bedtype_option['value'];
+
+    if ($bedtype_value != '') {
+
+
+        $bedtype_select .= "<option value='" . $bedtype_option['value'] . "'>" . $bedtype_option['label'] . "</option>";
+    }
+}*/
+
+?>
+
+<div class="my-account">
+	<div class="page-title">
+	    <h1 ><?php echo $this->__('List Your Space') ?></h1>
+	</div>
+	<form action="<?php echo $this->getUrl('property/index/post') ?>" name="propertyform" id="propertyform" method="post" enctype="multipart/form-data">
+	
+	    <div class="fieldset" >
+	    	<h2><?php echo $this->__('About Your Place') ?></h2>
+	        <ul class="form-list_inner" style="width:915px; padding: 15px;">
+	        <h1><?php echo $this->__('Listing Type limit'); ?></h1>
+	        <p class="required right">* <?php echo $this->__('Required Fields'); ?></p>
+	        <li>
+	             <div class="field">
+	                 <div class="selectproperty">
+	                  <label for="proptype" class="required left lable_inner"> <?php echo $this->__('Property Type') ?> <em>*</em></label>
+	                  <div class="floatleft"><select id="proptype" name="proptype"  class="select select input-text required-entry input-text_pro"><?php echo $select_protype; ?> </select></div>
+	                      </div>
+	                        </div>
+	                 <div class="field">
+	                <div class="selectprivacy">
+	                <label for="privacy" class="required left lable_inner"> <?php echo $this->__('Room Type') ?> <em>*</em></label>
+	                  <div class="floatleft"><select id="privacy" name="privacy"  class="select select input-text required-entry input-text_room">
+	
+	                                <?php echo $privacy_select; ?>               </select></div>
+	                        </div>
+	                        </div>
+	            </li>
+	
+	            <li class="listheading"><h1><?php echo $this->__('Description'); ?></h1></li>
+	            <li class="field">
+	                <div class="field">
+	                     <div class="input-box_inner">
+	                    <label for="name" class="required left lable_inner"><?php echo $this->__('Title') ?> <em>*</em></label>
+	
+	                        <div class="floatleft"><input name="name" id="name"   title="<?php echo $this->__('Name') ?>" value="" class="input-text required-entry input-text_inner" type="text"   onkeyup=limiter() maxlength="100"/></div>
+	<!--                        <input type=text name=limit size=4 readonly value="35">-->
+	                    </div>
+	                     <div class="input-box_inner">
+	                    <label for="desc" class="required left lable_inner"><?php echo $this->__('Description') ?> <em>*</em></label>
+	
+	                    <div class="floatleft"><textarea name="desc" id="desc" title="<?php echo $this->__('Description') ?>" class="required-entry input-text input-text_descri" cols="5" rows="5"></textarea></div>
+	                </div>
+	                    <div class="input-box_inner">
+	                    <label for="sdesc" class="required left lable_inner"><?php echo $this->__('House rules') ?> <em>*</em></label>
+	
+	                    <div class="floatleft"><textarea name="sdesc" id="sdesc" title="<?php echo $this->__('House rules') ?>" class="required-entry input-text input-text_high" cols="5" rows="5"></textarea></div>
+	                    <div class="clearer"></div>
+	                </div>
+		                <div class="input-box">
+		                    <label for="keywords" class="required left lable_inner"><?php echo $this->__('Keywords') ?> <em>*</em></label>
+		                    <div class="floatleft">
+		                    	<textarea name="keywords" id="keywords" title="<?php echo $this->__('Keywords') ?>" class="required-entry input-text input-text_high" cols="5" rows="5"></textarea>
+		                    	<span><?php echo $this->__('Add comma(,) seperated keywords. Eg: ocean side, transit')?></span>
+		                    </div>
+		                    <div class="clearer"></div>
+		                </div>
+	                </div>
+	                
+	                <div class="field">
+	
+	                    <div class="input-box_inner">
+	                        <input name="email" id="email" title="<?php echo $this->__('Email') ?>" value="abc@gmail.com" class="input-text required-entry validate-email " type="hidden" />
+	                    </div>
+	                </div>
+	            </li>
+	
+	
+	
+	
+	            <li class="listheading"><h1><?php echo $this->__('Amenities'); ?></h1></li>
+	               <li style="overflow: hidden; display: block; clear:left;">
+	
+	
+	                  <?php
+	                  $totalAmenity = count($amenityAttribute->getSource()->getAllOptions(true, true));
+	
+	
+	                  $x = 0;
+	                  foreach ($amenityAttribute->getSource()->getAllOptions() as $amenity) {
+	                    $value = $amenity['value'];
+	
+	
+	    if ($x == 0)
+	                    echo "<ul style='' >";
+	
+	
+	
+	                        if($value !='') {
+	                            $PropertyType[$value] = $amenity['label'];
+	                            ?>
+	                            <li class="checkbox lable_inner checkbox_inner" style="border:none !important;padding:0px !important">
+	                        <input style="float:left;margin:4px;" type="checkbox" name="amenity[<?php $i ?>]" id="amenity[<?php $i ?>]" value="<?php echo $amenity['value']; ?>" /> <?php echo $amenity['label']; ?> <br />
+	                            </li>
+	                            <?php
+	                        }
+	
+	
+	                  if($x % 5 == 0 )
+	                        echo "</ul> <ul  id='amenities-value'>";
+	
+	
+	
+	
+	                    if ($x == $totalAmenity - 1)
+	                        echo "</ul>";
+	
+	                    $x++;
+	                 }
+	                 ?>
+	
+	            </li>
+	            
+	            <li class="listheading"><h1><?php echo $this->__('Restrictions'); ?></h1></li>
+	            <li style="overflow: hidden; display: block; clear:left;">
+	            	<ul class='restrictions-value'>
+	                  <?php
+	                  $totalRestrictions = count($restrictionsAttribute->getSource()->getAllOptions(true, true));
+	                  $x = 0;
+	                  foreach ($restrictionsAttribute->getSource()->getAllOptions() as $restriction) {
+	                    $value = $restriction['value'];
+	                        if($value !='') {
+	                            //$PropertyType[$value] = $amenity['label'];
+	                            ?>
+	                            <li class="checkbox lable_inner checkbox_inner" style="border:none !important;padding:0px !important">
+	                        <input style="float:left;margin:4px;" type="checkbox" name="restriction[<?php $i ?>]" id="restrictions[<?php $i ?>]" value="<?php echo $restriction['value']; ?>" /> <?php echo $restriction['label']; ?> <br />
+	                            </li>
+	                            <?php
+	                        }
+	                    $x++;
+	                  }
+	                 ?>
+	                 </ul>
+	            </li>
+	            
+	            
+	            <li class="listheading"><h1><?php echo $this->__('Details'); ?></h1></li>
+	              <li>
+	                  <div class="field">
+	                      <div class="selectaccomodate">
+	                    <label for="accomodate" class="required left lable_inner"><?php echo $this->__('Accommodates') ?> <em>*</em></label>
+	                   <div class="floatleft"> <select id="accomodate" name="accomodate"  class="select select input-text required-entry input-text_acc">
+	                                <option value=""><?php echo $this->__('Select Maximum Accommodates') ;?></option>
+	                                <?php for($i=1; $i<=30; $i++){ ?>  <option value="<?php echo $i;?>"><?php echo $i;?></option>    <?php }?>
+	
+	                                         </select>
+	                   <span><?php echo $this->__('This refers number of guest allowed in your place'); ?></span>
+	                   </div>
+	
+	                        </div>
+	
+	                </div>
+	               <div class="field">
+	                   <div class="selectroom">
+	                    <label for="room" class="required left lable_inner"><?php echo $this->__('Bed rooms') ?> <em>*</em></label>
+	                    
+	                    <div class="floatleft"><select id="room" name="room"  class="select select input-text required-entry input-text_bed">
+	                            <option value=""><?php echo $this->__('Bedrooms Available'); ?></option>
+	<?php for ($i = 1; $i <= 15; $i++) { ?>  <option value="<?php echo $i; ?>"><?php echo $i; ?></option>    <?php } ?>            </select>
+	                    
+	                    <span><?php echo $this->__('Select the number of bedrooms excluding living rooms.'); ?></span>
+	                    </div>
+	                        
+	                        </div>
+	
+	                </div>
+	                  <div class="field">
+	                    <div class="selectbedtype">
+	                    <label for="bedtype" class="required lable_inner left"> <?php echo $this->__('Bed type') ?> <em>*</em></label>
+	                         <div class="floatleft">
+	                    <select id="bedtype" name="bedtype"  class="select select input-text required-entry input-text_bedtype">
+	                                        <option value=""><?php echo $this->__('Select Bed type') ;?></option>
+	                                        <?php echo $bedtype_select; ?>
+	                          </select></div>
+	                        </div>
+	                        </div>
+	                <!--<div class="field">
+	                    <div class="selectpets">
+	                <label for="pets" class="required lable_inner left"> <?php echo $this->__('Pets on Premises') ?> <em>*</em></label>
+	                <div class="floatleft">
+	                  <select id="pets" name="pets"  class="select select input-text required-entry input-text_pets">
+	                                <option value=""><?php echo $this->__('Select') ;?></option>
+	                                <?php //echo $pets_select; ?>               </select>
+	                    <span> <?php echo $this->__('Let the guest knows whether the room is pet-friendly or not.') ?></span>
+	                </div>
+	                        
+	                        </div>
+	                        </div>-->
+	                <div class="field input-box input-box_inner">
+	                  <label for="property_size" class="lable_inner left"> <?php echo $this->__('Property Size') ?></label>
+	                  <div class="floatleft">
+	                    <input name="property_size" id="property_size" title="<?php echo $this->__('Property Size') ?>" value="" class="input-text" type="text"/>
+	                    <span> <?php echo $this->__('Enter property size in square feet.'); ?></span>
+	                  </div>
+	                </div>
+	                
+	                  <div class="field input-box input-box_inner">
+	                  <label for="price" class="required lable_inner left"> <?php echo $this->__('Price/Night') ?> <em>*</em></label>
+	                  <div class="floatleft">
+	                    <input name="price" id="price" onblur="return validatePrice(this.value)" title="<?php echo $this->__('Price') ?>" value="" class="input-text required-entry input-text_price " type="text"/>
+	                    <span> <?php echo  $currencySymbol .'('. $this->__('Enter price in ') . $currencyCountry . ')'; ?></span>
+	                  </div>
+	                    <div id="priceErr" style="color:red;margin-left: 165px"></div>
+	                </div>
+	                  <div class="input-box input-box_inner">
+	                  <label for="address" class="required lable_inner left"><?php echo $this->__('Address') ?> <em>*</em></label>
+					  <div class="floatleft">
+	                    <textarea name="address" id="address" title="<?php echo $this->__('Address') ?>" class="required-entry input-text input-text_address fulladdressvalidator" cols="5" rows="7"></textarea>
+					  </div>
+					  <div id="map_canvas" style="float: right; height: 132px; width: 250px;"></div>
+	                </div>
+	                 <div class="input-box input-box_inner">
+	                  <label for="city" class="required lable_inner left"> <?php echo $this->__('City') ?> <em>*</em></label>
+	<div class="floatleft">
+	                    <input name="city" id="city" title="<?php echo $this->__('City') ?>" value="" class="input-text required-entry input-text_city" type="text"/>
+	</div>
+	                </div>
+	                  <div class="input-box input-box_inner">
+	                  <label for="state" class="required lable_inner left"> <?php echo $this->__('State / Province / Region') ?> <em>*</em></label>
+	<div class="floatleft">
+	                    <input name="state" id="state" title="<?php echo $this->__('State / Province / Region') ?>" value="" class="input-text required-entry input-text_state" type="text"/>
+	</div>
+	                </div>
+	
+	                <div class="field">
+	                         <div class="selectpropcountry">
+	                            <label for="propcountry" class="required lable_inner left">  <?php echo $this->__('Country') ?> <em>*</em></label>
+	                            <div class="floatleft">
+	                            <select id="propcountry" name="propcountry"  class="select select input-text required-entry input-text_country">
+	                                            <option value=""><?php echo $this->__('Select your Country') ;?></option>
+	                                    <?php echo $countryselect; ?>
+	                             </select>
+	                            </div>
+	                        </div>
+	                        </div>
+	                 
+	                <div class="field input-box input-box_inner">
+	                  <label for="host_phone_num" class="required lable_inner left"> <?php echo $this->__('Host Contact Number') ?> <em>*</em></label>
+	                  <div class="floatleft">
+	                    <input name="host_phone_num" id="host_phone_num" title="<?php echo $this->__('Host Contact Number') ?>" value="" class="input-text" type="text"/>
+	                  </div>
+	                </div>
+	                
+	                   <div class="field">
+	                       <div class="selectcancelpolicy">
+	                        <label for="cancelpolicy" class="required lable_inner left"> <?php echo $this->__('Cancellation Policy') ?> <em>*</em></label>
+	                         <div class="floatleft">
+	                        <select id="cancelpolicy" name="cancelpolicy"  class="select select input-text required-entry input-text_policy">
+	                                <option value=""><?php echo $this->__('Select Cancellation Policy');?></option>
+	                                <?php echo $cancelpolicy_select; ?>
+	                         </select>
+	                         </div>
+	                        </div>
+	                        </div>
+	                  <?php if(empty($banner)) { ?>
+	                    <div class="field">
+	                       <div class="selectcancelpolicy">
+	                        <label for="banner" class="required lable_inner left"> <?php echo $this->__('Property Display in Homepage Banner') ?></label>
+	                         <div class="floatleft">
+	                             <?php echo $this->__('If Yes'); ?> <input type="checkbox" name="banner" id="banner" value="1" />
+	                         </div>
+	                        </div>
+	                     </div>
+	                  <?php } ?> 
+	
+	            </li>
+	             <!--<li class="listheading"><h1><?php echo $this->__('Meta Information'); ?></h1></li>
+	            <li class="field">
+	                <div class="field">
+	                     <div class="input-box_inner">
+	                    <label for="name" class="required left lable_inner"><?php echo $this->__('Meta Title') ?></label>
+	                    <div class="floatleft">
+	                        <input name="meta_title" id="meta_title"   title="<?php echo $this->__('Meta Title') ?>" value=""  class="input-text input-text_inner" type="text"   onkeyup=limiter() maxlength="100"/>
+	                    </div>
+	
+	                    </div>
+	                     <div class="input-box_inner">
+	                    <label for="desc" class="required left lable_inner"><?php echo $this->__('Meta Keywords') ?></label>
+	<div class="floatleft">
+	                    <textarea name="meta_keyword" id="meta_keyword" title="<?php echo $this->__('Meta Keywords') ?>" class="input-text input-text_descri" cols="5" rows="5"></textarea>
+	</div>
+	                </div>
+	                    <div class="input-box">
+	                    <label for="sdesc" class="required left lable_inner"><?php echo $this->__('Meta Description') ?></label>
+	                    <div class="floatleft">
+	                    <textarea name="meta_description" id="meta_description" title="<?php echo $this->__('Meta Description') ?>" class="input-text input-text_high" cols="5" rows="5"></textarea>
+	                    </div>
+	                </div>
+	                </div>
+	
+	            </li>-->
+	             
+	             <li class="listheading"><h1><?php echo $this->__('Property Image'); ?></h1></li>
+	             <li class="field propertyimage">
+	             	<div id="choose_img">
+	                     <img alt="" src="<?php echo $this->getSkinUrl('images/img_upload.png')?>" />
+	                     <span>Upload a file from your computer</span>
+	                     <input type="file" value="" name="propertyimage" id="propertyimage">
+	                </div>
+	             </li>
+	            <div class="buttons-set">
+	        <p class="required ">* <?php echo $this->__('Required Fields'); ?></p>
+	         <button type="submit" title="<?php echo $this->__('Submit your property') ?>" class="button"><?php echo $this->__('Submit your property') ?></button>
+	    </div>
+	        </ul>
+	        </div>
+	
+	</form>
+	<div class="clear"></div>
+</div>
+
+<script type="text/javascript">
+    //<![CDATA[
+
+    var Propertyform = new VarienForm('propertyform', true);
+    $('propertyform').reset();
+    //]]>
+</script>
+
+<script type="text/javascript">
+		$j = jQuery.noConflict();
+        // The following code show execute only after the page is fully loaded
+        $j(document).ready(function () {
+            if ($j('#propertyform').exists()) {
+ 
+                // Enable jQuery Validation for the form
+                $j("#propertyform").validate({ onkeyup: false });
+ 
+                // Add validation rules to the FullAddress field
+                $j("#address").rules("add", {
+                    fulladdress: true,
+                    required: true,
+                    messages: {
+                        fulladdress: "Google cannot locate this address. Please enter a valid address."
+                    }
+                });
+
+            }
+        });
+ 
+        // Create a jQuery exists method
+        jQuery.fn.exists = function () { return jQuery(this).length > 0; }
+ 
+        // Position the Google Map
+        function Map(elementId, geolocation) {
+            var myOptions = {
+                zoom: 13,
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+            }
+            var map = new google.maps.Map(document.getElementById(elementId), myOptions);
+            map.setCenter(geolocation);
+        }
+ 
+        // FullAddress jQuery Validator
+        function FullAddressValidator(value, element, paras) {
+ 
+            // Convert the value variable into something a bit more descriptive
+            var CurrentAddress = value;
+ 
+            // If the address is blank, then this is for the required validator to deal with.
+            if (value.length == 0) {
+                return true;
+            }
+ 
+            // If we've already validated this address, then just return the previous result
+            if ($j(element).data("LastAddressValidated") == CurrentAddress) {
+                return $j(element).data("IsValid");
+            }
+ 
+            // We have a new address to validate, set the IsChecking flag to true and set the LastAddressValidated to the CurrentAddress
+            $j(element).data("IsChecking", true);
+            $j(element).data("LastAddressValidated", CurrentAddress);
+ 
+            // Google Maps doesn't like line-breaks, remove them 
+            CurrentAddress = CurrentAddress.replace(/\n/g, "");
+ 
+            // Create a new Google geocoder
+            var geocoder = new google.maps.Geocoder();
+            geocoder.geocode({ 'address': CurrentAddress }, function (results, status) {
+ 
+                // The code below only gets run after a successful Google service call has completed.  
+                // Because this is an asynchronous call, the validator has already returned a 'true' result
+                // to supress an error message and then cancelled the form submission.  The code below 
+                // needs to fetch the true validation from the Google service and then re-execute the 
+                // jQuery form validator to display the error message.  Futhermore, if the form was 
+                // being submitted, the code below needs to resume that submit.
+ 
+                // Google reported a valid geocoded address
+                if (status == google.maps.GeocoderStatus.OK) {
+ 
+                    // Get the formatted Google result
+                    var address = results[0].formatted_address;
+ 
+                    // Count the commas in the fomatted address.   
+                    // This doesn't look great, but it helps us understand how specific the geocoded address
+                    // is.  For example, "CA" will geocde to "California, USA".  
+                    numCommas = address.match(/,/g).length;
+ 
+                    // A full street address will have at least 3 commas.  Alternate techniques involve 
+                    // fetching the address_components returned by Google Maps.  That code looks even more ugly.
+                    if (numCommas >= 3) {
+ 
+                        // Replace the first comma found with a line-break
+                        address = address.replace(/, /, "\n");
+ 
+                        // Remove USA from the address (remove this, if this is important to you)
+                        address = address.replace(/, USA$/, "");
+ 
+                        // Check for the map_canvas, if it exists then position the Google Map
+                        if ($j("#map_canvas").exists()) {
+                            $j("#map_canvas").show();
+                            Map("map_canvas", results[0].geometry.location);
+                        }
+ 
+                        // Set the textarea value to the geocoded address
+                        $j(element).val(address);
+ 
+                        // Cache this latest result
+                        $j(element).data("LastAddressValidated", address);
+ 
+                        // We have a valid geocoded address
+                        $j(element).data("IsValid", true);
+                    } else {
+                        // Google Maps was able to geocode the address, but it wasn't specific
+                        // enough (not enough commas) to be a valid street address.
+                        $j(element).data("IsValid", false);
+                    }
+ 
+                    // Otherwise the address is invalid
+                } else {
+                    $j(element).data("IsValid", false);
+                }
+ 
+                // We're no longer in the midst of validating
+                $j(element).data("IsChecking", false);
+ 
+                // Get the parent form element for this address field
+                var form = $j(element).parents('form:first');
+ 
+                // This code is being run after the validation for this field,
+                // if the form was being submitted before this validtor was 
+                // called then we need to re-submit the form.
+                if ($j(element).data("SubmitForm") == true) {
+                    //form.submit();
+                } else {
+                    // Re-validate this property so we can return the result.
+                    form.validate().element(element);
+                }
+            });
+ 
+            // The FullAddress validator always returns 'true' when initially called.
+            // The true result will be return later by the geocode function (above)
+            return true;
+        }
+ 
+        // Define a new jQuery Validator method
+        $j.validator.addMethod("fulladdress", FullAddressValidator);
+    </script>
+    
+<!-- Counter Script  -->
+<script type="text/javascript">
+
+var count = "35";
+function limiter(){
+
+var tex = document.propertyform.name.value;
+var len = tex.length;
+
+if(len > count){
+        tex = tex.substring(0,count);
+        document.propertyform.comment.value =tex;
+        return false;
+}
+
+document.propertyform.limit.value = count-len;
+
+}
+function trim(stringToTrim) {
+	return stringToTrim.replace(/^\s+|\s+$/g,"");
+}
+function validatePrice(pValue){
+    document.getElementById("priceErr").innerHTML = "";
+    pValue = trim(pValue);
+    if(isNaN(pValue) ){
+        document.getElementById("priceErr").innerHTML = "<?php echo $this->__('Please enter valid number'); ?>";
+        document.getElementById("price").value = "";
+        document.getElementById("price").focus();
+        return false;
+    }
+
+
+        if(parseInt(pValue)== 0){
+            document.getElementById("priceErr").innerHTML = "<?php echo $this->__('Enter the price value above 0') ?>";
+            document.getElementById("price").focus();
+            return false;
+          }
+
+}
+</script>

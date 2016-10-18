@@ -1,0 +1,393 @@
+<style>
+.normal{cursor:pointer;}
+.sel,.startsel,.endsel{
+    background-color:red;
+}
+</style>
+<div class="my-account">
+	<div class="page-title">
+	    <h1 ><?php echo $this->__('Calendar') ?></h1>
+	</div>
+	<!--Block the calendar Light Box start-->
+	<div id="light" class="white_content"> 
+	    <div class="search_date" >
+	        <div class="checkinDate1"><?php echo $this->__('From'); ?></div>
+	        <input type="text" placeholder="<?php echo $this->__('dd-mm-yy'); ?>" autocomplete="off" id="from" name="from" style="color: black;"/>
+	    </div>
+	    <div class="search_date">                   
+	        <div class="checkinDate1"><?php echo $this->__('To'); ?></div>
+	        <div><input type="text" placeholder="<?php echo $this->__('dd-mm-yy'); ?>" autocomplete="off" id="to" name="to" style="color: black;"/></div>
+	    </div>
+	    <div class="search_date"> 
+	        <label for="availability" class="required left lable_inner"><?php echo $this->__('Availability') ?></label>
+	       <div>
+	           <select id="bookavail" name="bookavail" class="select input-text input-text_pro" style="color: black; margin: 0;" onchange="hide_price(this.value)">
+	            <option value="1"><?php echo $this->__('Not Available')?></option>
+	            <option value="3"><?php echo $this->__('Special Price')?></option>
+	        </select>
+	       </div>   
+	    </div>
+	    <div class="search_date" id="hide_per_night" style="display:none;"> 
+	        <label for="pernight" class="required left lable_inner"><?php echo $this->__('Per Night') ?></label>
+	        <div><input type="text" name="pernight" autocomplete="off" id="pernight" style="color: black;"/></div>
+	    </div>
+	    <input type="hidden" name="pid" id="pid" value="<?php echo $this->getRequest()->getParam('id'); ?>" />
+	    
+	    <div style="clear: left;float: left;">
+	  
+		    <div style="margin: 10px 0px 0px 13px; float: left;">
+		        <input type="submit" id="submitBtn" class="button-glossy blue btn_grid" onclick="return postData();" value="<?php echo $this->__("Submit") ?>" disabled="disabled" />
+		    </div>
+
+		    <a href = "javascript:void(0)" onclick = "closePoP(0)" class="close_link">Close</a>
+		    <span id="txtHint" style="float: left; margin-top: 12px; width: 200px;"></span>
+	    </div>
+	     
+	</div>
+	
+	<div id="light2" class="white_content" style="display:none;"> 
+	    <div class="search_date" >
+	        <div class="checkinDate1"><?php echo $this->__('Date'); ?></div>
+	        <input type="text" placeholder="<?php echo $this->__('dd-mm-yy'); ?>" autocomplete="off" readonly id="spdate" name="spdate" style="color: black;"/>
+	    </div>
+	    <div class="search_date"> 
+	        <label for="availability" class="required left lable_inner"><?php echo $this->__('Availability') ?></label>
+	       <div>
+	           <select id="bookavail2" name="bookavail2" class="select input-text input-text_pro" style="color: black; margin: 0;">
+	            <option value="3"><?php echo $this->__('Special Price')?></option>
+	        </select>
+	       </div>   
+	    </div>
+	    <div class="search_date" id="hide_per_night2"> 
+	        <label for="pernight" class="required left lable_inner"><?php echo $this->__('Per Night') ?></label>
+	        <div><input type="text" name="pernight2" autocomplete="off" id="pernight2" style="color: black;"/></div>
+	    </div>
+	    
+	    <div style="clear: left;float: left;">
+		    <div style="margin: 10px 0px 0px 13px; float: left;">
+		        <input type="submit" id="submitBtn2" class="button-glossy blue btn_grid" onclick="modifySpecial(this, 0)" value="<?php echo $this->__("Submit") ?>" style="background: none repeat scroll 0 0 #1E85B0; border: 1px solid #1D7EA7; color: #FFFFFF !important;" />
+		    </div>
+
+		    <a href = "javascript:void(0)" onclick = "closePoP2(0)" class="close_link">Close</a>
+		    <a href = "javascript:void(0)" onclick = "modifySpecial(this, 1)" class="close_link">Delete</a>
+		    <span id="txtHint2" style="float: left; margin-top: 12px; width: 200px;"></span>
+	    </div>
+	     
+	</div>
+	
+	<div id="fade" class="black_overlay"></div>
+	<!--Block the calendar Light Box end-->
+	<?php
+	$productId = $this->getRequest()->getParam('id'); //Get the product id
+	if (!isset($_GET["date"])) {
+	    if (!isset($_GET["x"])) {
+	        $x = date("n");
+	    } else {
+	        $x = $_GET["x"];
+	    }
+	    if ($x == "")
+	        $x = date("n");
+	    $year = date("Y");
+	    $date = strtotime("$year/$x/1");
+	    $day = date("D", $date);
+	    $m = date("F", $date);
+	}
+	?>
+	<div id="calendarWrapper" style="float:left"></div>
+	<div class="clear"></div>
+	<div id="cal_legend" style="margin-left:20px;">
+		<h2 class="past_grid"><?php echo $this->__('Past') ?></h2>
+		<h2 class="available_grid"><?php echo $this->__('Available') ?></h2>
+		<h2 class="booked_grid"><?php echo $this->__('Booked') ?></h2>
+		<h2 class="unavailable_grid"><?php echo $this->__('Not Available') ?></h2>
+	</div>
+	<div class="clear"></div>
+	
+	<div class="page-button">
+	    <a href="<?php echo $this->geturl('property/index/show') ?>" title="<?php echo $this->__('Back') ?>"><?php echo $this->__('Back') ?></a>
+	    <a href="javascript:void(0)" style="float:right; margin-right:20px;" title="<?php echo $this->__('Update') ?>" onclick="displayForm()"><?php echo $this->__('Update') ?></a>
+	    <div class="clearer"></div>
+	</div>
+</div>
+<script type="text/javascript">
+    var url = "<?php echo Mage::getBaseUrl() . 'property/index/calendarview/?date=' . $x . '__' . $year . '&ajax=&productid=' . $productId ?>";
+    var flag = 0;
+    window.onload = function() { 
+        ajaxLoadCalendar(url);
+    }
+    
+    function ajaxLoadCalendar(url){
+    	document.getElementById("calendarWrapper").innerHTML="<div style='margin:50px 0px 50px 0px;'><img  src='<?php echo $this->getSkinUrl('images/calendar-loader.gif') ?>' /></div>";
+        jQuery.ajax({
+            url: url,
+            type: "GET",
+            success: function(data) {
+                jQuery("#calendarWrapper").html(data);
+                jQuery("#light").hide();
+            }
+        })
+    }
+    
+    
+    //var dataarray = ["2014-05-24","2014-05-25","2014-05-28"];   
+    
+    $j(function() {
+        var dates = $j( "#from, #to" ).datepicker({
+            changeMonth: true,
+            minDate: '0',
+            numberOfMonths: 1,
+            /*beforeShowDay: function(date){
+		        var string = jQuery.datepicker.formatDate('yy-mm-dd', date);
+		        return [ dataarray.indexOf(string) == -1 ]
+		    },*/
+            onSelect: function( selectedDate ) {
+                var option = this.id == "from" ? "minDate" : "maxDate",
+                instance = $j( this ).data( "datepicker" ),
+                date = $j.datepicker.parseDate(
+                instance.settings.dateFormat ||
+                    $j.datepicker._defaults.dateFormat,
+                selectedDate, instance.settings );
+                dates.not( this ).datepicker( "option", option, date );
+                $j("#from" ).datepicker("option","maxDate","");
+
+                if(this.id == "from"){
+                    instance = $j( this ).data( "datepicker" )
+                    var depart = $j.datepicker.parseDate($j.datepicker._defaults.dateFormat, selectedDate);
+                    depart.setDate(depart.getDate());
+                    $j("#to" ).datepicker(  "option", "minDate", depart );
+
+                }
+		        if($j("#from").val()!='' && $j("#to").val()!='') {
+		        	checkavail($j("#from").val(),$j("#to").val());
+		        }
+            }
+        });
+    });
+    
+    function checkavail(fromDate,toDate)
+	{        
+	    if ($j.trim(fromDate)=="" || $j.trim(fromDate)=="mm/dd/yyyy" )
+	    {
+	        $j("#from").datepicker("show");
+	        document.getElementById("txtHint").innerHTML="";
+	        return false;
+	    }
+	    else if($j.trim(toDate) !="" && $j.trim(toDate)!="mm/dd/yyyy") {
+	        document.getElementById("txtHint").innerHTML="<img src='<?php echo $this->getSkinUrl('images/loader.gif') ?>' />";
+	        
+	        $j.ajax({
+		        async:true,
+		        type: "GET",
+		        data: {from :fromDate, to:toDate, productid:<?php echo $this->getRequest()->getParam('id'); ?>},
+		        url: "<?php echo Mage::getBaseUrl() . 'property/index/checkavail' ?>",
+		        success: function(data){
+		        	if(data != 0) {
+		            	document.getElementById("txtHint").style.display = "none";
+	                    $j('#submitBtn').removeAttr('disabled');
+		        	} else {
+		        		$j("#txtHint").html('Dates are not available, please refer to calendar');
+		            	document.getElementById("txtHint").style.display = "block";
+	                    $j('#submitBtn').attr('disabled', 'disabled');
+		        	}
+		        }
+		    });
+	    }
+	}
+										    
+    /*jQuery(function() {
+        jQuery('td.normal').click(function(){ 
+            var valeDate = jQuery(this).attr('id');
+            var temp ;
+            //jQuery(".normal").removeClass("sel");
+            jQuery(this).addClass("sel");
+            if(flag == 0){
+                jQuery(this).addClass("startsel");
+                temp = valeDate.split("_");
+                jQuery("#inDate").val(temp[1]);                    
+                flag = 1;
+            } else{
+                jQuery(".normal").removeClass("endsel");
+                jQuery(this).addClass("endsel");
+                temp = valeDate.split("_");
+                jQuery('#inTo').val(temp[1]);
+                jQuery("#light").show();
+                jQuery("#fade").show();
+                flag = 0;
+            }
+        });
+        
+        jQuery(".normal").live("mouseover", function(){
+            if(jQuery(this).attr("class") != "startsel"){
+                if(jQuery(".startsel").length >0 ){
+                    var classes = jQuery(this).attr("class").split(" ");
+                    var startclass = jQuery(".startsel").attr("class").split(" ");
+                    jQuery(".normal").not(".startsel").removeClass("sel");
+                    for(var i= parseInt(startclass[2]); i <= parseInt(classes[2]) ;i++  ){
+                        jQuery("."+i).addClass("sel");
+                    }
+                    jQuery(this).addClass("sel");
+                }
+            }
+            if(jQuery(".startsel").length>0 && jQuery(".endsel").length >0 ){
+                var startselectDate = jQuery(".startsel").attr("class").split(" ");
+                var endselectDate = jQuery(".endsel").attr("class").split(" ");
+                for(var i= parseInt(startselectDate[2]); i <= parseInt(endselectDate[2]) ;i++  ){
+                    jQuery("."+i).addClass("sel");
+                }
+            }
+            
+        });
+         
+        jQuery(".blockcal").live("mouseout", function(){
+            if(jQuery(".startsel").length > 0 && jQuery(".endsel").length > 0 ){
+                var startselectDate = jQuery(".startsel").attr("class").split(" ");
+                var endselectDate = jQuery(".endsel").attr("class").split(" ");
+                
+                for(var i= 1; i <= 31 ;i++  ){
+                   jQuery("."+i).removeClass("sel");
+                }
+                for(var i= parseInt(startselectDate[2]); i <= parseInt(endselectDate[2]) ;i++  ){
+                    jQuery("."+i).addClass("sel");
+                }     
+            }
+        });
+    });*/
+    
+    function displayForm(){
+        jQuery("#light").show();
+        jQuery("#fade").show() ;
+    }
+    function displayForm1(el){
+    	var formDateString = $j(el).attr('id');
+    	var formDate = formDateString.split("_");
+    	$j('#to').datepicker('setDate', formDate[1]);
+    	$j('#from').datepicker('setDate', formDate[1]);
+    	$j("#light").show();
+        $j("#fade").show();
+    	$j("#to").datepicker("option", "minDate", formDate[1]);
+    	$j("#to").datepicker("show");
+    }
+    
+    function modifyPrice(el, pr){
+    	var formDateString = $j(el).attr('id');
+    	var formDate = formDateString.split("_");
+    	$j('#spdate').val(formDate[1]);
+    	$j('#pernight2').val(pr.toFixed(2));
+    	$j("#light2").show();
+        $j("#fade").show();
+    }
+    
+    function removeBlockDate(el){
+    	var cconfirm = confirm('Are you sure to remove the blocked date?');
+    	if(!cconfirm) {
+    		return false;
+    	}
+    	var productId = jQuery("#pid").val();
+    	var blockDateString = $j(el).attr('id');
+    	var blockDate = blockDateString.split("_");
+    	
+		$j.ajax({
+            type: 'POST',
+            url: "<?php echo Mage::getBaseUrl() . 'property/index/removeblock' ?>",
+            data: {block_date:blockDate[1],productid:productId},
+            success: function(data){
+		        $j("#light").hide();
+		        $j("#fade").hide();
+		        ajaxLoadCalendar(url);
+		        flag = 0;
+            }
+        });
+    }
+    
+    function closePoP(a){
+        jQuery("#light").hide();
+        jQuery("#fade").hide() ;
+        flag = 0;
+    }
+    function closePoP2(a){
+        jQuery("#light2").hide();
+        jQuery("#fade").hide() ;
+        flag = 0;
+    }    
+    function postData(){
+        var checkin = jQuery("#from").val();
+        var checkout = jQuery("#to").val();
+        var bookavail = jQuery("#bookavail").val();
+        var productId = jQuery("#pid").val();
+        var price = jQuery("#pernight").val();
+
+        if ( ($j.trim(checkin)=="" || $j.trim(checkin)=="mm/dd/yyyy") && ($j.trim(checkout)=="" || $j.trim(checkout)=="mm/dd/yyyy") )
+	    {
+	        $j("#from").datepicker("show");
+	        document.getElementById("txtHint").innerHTML="";
+	        return false;
+	    }
+	    else if($j.trim(checkout) !="" && $j.trim(checkout)!="mm/dd/yyyy") {
+	        document.getElementById("txtHint2").innerHTML="<img src='<?php echo $this->getSkinUrl('images/loader.gif') ?>' />";
+	        
+	        $j.ajax({
+		        async:true,
+		        type: "GET",
+		        data: {from :checkin, to:checkout, productid:productId},
+		        url: "<?php echo Mage::getBaseUrl() . 'property/index/checkavail' ?>",
+		        success: function(data){
+		        	if(data != 0) {
+		            	document.getElementById("txtHint").style.display = "none";
+	                    $j('#submitBtn').removeAttr('disabled');
+		        	} else {
+		        		$j("#txtHint").html('Dates are not available, please refer to calendar');
+		            	document.getElementById("txtHint").style.display = "block";
+	                    $j('#submitBtn').attr('disabled', 'disabled');
+	                    return false;
+		        	}
+		        }
+		    });
+	    }
+	    
+        $j.ajax({
+            type: 'POST',
+            url: "<?php echo Mage::getBaseUrl() . 'property/index/updateavail' ?>",
+            data: {check_in:checkin,check_out:checkout,book_avail:bookavail,productid:productId,price_per:price},
+            success: function(data){
+		        $j("#light").hide();
+		        $j("#fade").hide();
+		        ajaxLoadCalendar(url);
+		        flag = 0;
+            }
+        });
+    }
+    
+    function hide_price(hide_pri) {
+		var hide_pri;   
+		if(hide_pri == 3) {
+		 document.getElementById('hide_per_night').style.display='block'; 
+		} else {
+		 document.getElementById('hide_per_night').style.display='none';
+		}
+    }
+    
+    function modifySpecial(el, del) {
+    	if(del == 1) {
+	    	var cconfirm = confirm('Are you sure to remove the special date?');
+	    	if(!cconfirm) {
+	    		return false;
+	    	}
+    	}
+    	
+    	var spdate = $j("#spdate").val();
+    	var price = jQuery("#pernight2").val();
+    	var productId = jQuery("#pid").val();
+    	
+        $j.ajax({
+            type: 'POST',
+            url: "<?php echo Mage::getBaseUrl() . 'property/index/updatespecial' ?>",
+            data: {sp_date:spdate,productid:productId,price_per:price,delinfo:del},
+            success: function(data){
+		        $j("#light2").hide();
+		        $j("#fade").hide();
+		        ajaxLoadCalendar(url);
+		        flag = 0;
+            }
+        });
+    }
+</script>

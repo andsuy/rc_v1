@@ -1,0 +1,66 @@
+<?php $this->setUserLocation(); ?>
+<?php if(Mage::getStoreConfig('yelp/yelp_restaurant_settings/enable') || Mage::getStoreConfig('eventbrite/eventbrite_settings/enable') || Mage::getStoreConfig('foursquare/yelp_discover_settings/enable')) { ?>
+
+<div id="roomshomepage">
+    <div id="room" class="clearfix">
+        <div id="left_columnhomepage">
+            <div id="main_content" class="box">
+                <div class="tabhomepage">
+                    
+                    <ul id="main_content_sub_navhomepage" class="rooms_sub_navhomepage clearfix">
+                    	<?php if(Mage::getStoreConfig('yelp/yelp_restaurant_settings/enable')) { ?>
+                        <li id="menuLocalRestaurant" class="main_link selected">
+                            <a href="javascript:void(0)" onclick="showEventsTabs('localRestaurant','menuLocalRestaurant')"><?php echo $this->__('Local Restaurants'); ?></a>
+                        </li>
+                        <?php } ?>
+                        <?php if(Mage::getStoreConfig('eventbrite/eventbrite_settings/enable')) { ?>
+                        <li id="menuLocalEvents" class="main_link">
+                            <a href="javascript:void(0)" onclick="showEventsTabs('localEvents','menuLocalEvents')"><?php echo $this->__('Local Events'); ?></a>
+                        </li>
+                        <?php } ?>
+                        <?php if(Mage::getStoreConfig('yelp/yelp_discover_settings/enable')) { ?>
+                        <li id="menuDiscover" class="main_link">
+                            <a href="javascript:void(0)" onclick="showEventsTabs('discover_div','menuDiscover')"><?php echo $this->__('Discover'); ?></a>
+                        </li>
+                        <?php } ?>
+<!--                        <li id="content_flag">
+                            
+                        </li>-->
+                    </ul>
+                    <!-- Local Restaurants -->
+                    <?php if(Mage::getStoreConfig('yelp/yelp_restaurant_settings/enable')) { ?>
+                    <div id="localRestaurant" class="main_content_events" style="display: block; ">
+                        <?php echo $this->getChildHtml('addevents_yelp'); ?>
+                    </div>
+                    <?php } ?>
+                    <!-- Local Restaurants ends -->
+                    <!-- Local Events -->
+                    <?php if(Mage::getStoreConfig('eventbrite/eventbrite_settings/enable')) { ?>
+                    <div id="localEvents" class="main_content_events" style="display: none;">
+                        <?php echo $this->getChildHtml('addevents_eventbrite'); ?>
+                    </div>
+                    <?php } ?>
+                    <!-- Local Events ends -->
+                    <!-- Discover -->
+                    <?php if(Mage::getStoreConfig('yelp/yelp_discover_settings/enable')) { ?>
+                    <div id="discover_div" class="main_content_events" style="display: none;">
+                        <?php echo $this->getChildHtml('addevents_yelp_place'); ?>
+                    </div>
+                    <?php } ?>
+                    <!-- Discover ends -->
+                </div>         
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var $slide = jQuery.noConflict();
+    function showEventsTabs(id,menuName){
+        $slide(".main_content_events").hide();
+        $slide(".main_link").removeClass("selected");
+        $slide("#"+menuName).addClass("selected");
+        $slide("#"+id).show();
+    }
+</script>
+<?php } ?>

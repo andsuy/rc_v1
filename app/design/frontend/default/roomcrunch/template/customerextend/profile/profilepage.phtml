@@ -1,0 +1,24 @@
+<?php 
+$customerid  = Mage::app()->getRequest()->getParam('id');
+$customer = Mage::getModel('customer/customer')->load($customerid);
+$cust_name = $customer->getName();
+$cust_month = date("F", strtotime($customer->getCreatedAt()));
+$cust_year = date('Y',strtotime($customer->getCreatedAt()));
+$profileData = Mage::helper('customerextend')->getCustomerProfileData($customer_id);
+
+if(Mage::getStoreConfig('property_section/layout_settings/hide_address')) {
+	$nameArray = explode(' ', $cust_name);
+	$displayName = $nameArray[0];
+} else {
+	$displayName = $cust_name;
+}
+?>
+
+<div id="profile_right" class="clearfix">
+    <div class="panel">
+        <div class="header_grid"><h1> <?php echo $this->__('Hey, I&#39;m') ?> <?php echo $displayName.' !';?></h1> <span> <?php echo $this->__('Member Since') ?> <?php echo $cust_month .' '.$cust_year;?></span></div>
+            <div class="body_grid clearfix">
+                <p><?php echo $profileData->getHostDetails(); ?></p>
+            </div>      
+    </div>
+</div>

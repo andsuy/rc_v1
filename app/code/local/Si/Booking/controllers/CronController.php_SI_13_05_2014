@@ -1,0 +1,194 @@
+<?php
+class Si_Booking_CronController extends Mage_Core_Controller_Front_Action {   
+
+	public function sendcodeAction() {
+		$checkinDate = date('Y-m-d', strtotime("+1 days") );
+		//echo $checkinDate; // 2014-05-11
+		$collection = Mage::getModel('booking/booking')->getCollection()
+						->addFieldToFilter('checkin', array('eq' => $checkinDate));
+						//->addFieldToFilter('booking_status', 1)
+						//->addFieldToFilter('key_status', 0);
+
+		if($collection->count() > 0) {
+			foreach($collection as $_booking) {
+				$item = Mage::getModel('booking/booking')->load($_booking->getBookingId());
+		//echo '<pre>'; print_r($item->getData()); echo '</pre>';
+		//echo date('l, F d, Y', strtotime($item->getCheckin()));
+		//exit;
+				$order = Mage::getModel('sales/order')->load($item->getOrderId());
+				if($order) {
+		        	// create 5 digits code
+		        	$secureCode = Mage::helper('booking')->getSecureCode();
+		        	
+		        	$item->setSecureKey($secureCode);
+		        	$item->setKeyStatus(1);
+			        $item->getUpdatedAt(now());
+			        $item->save();
+			        
+			        //**** mails to guest starts ****/
+			        //get guest details
+			        $guest = Mage::getModel('customer/customer')->load($item->getGuestId());
+			        $host = Mage::getModel('customer/customer')->load($item->getHostId());
+			        $storeId = Mage::app()->getStore()->getStoreId();
+			        //Mage::log('Check: ' . $host . ' -- ' . $storeId);
+			        $product = Mage::getModel('catalog/product')->load($item->getProductId());
+			        
+			        if (Mage::helper('sales')->canSendNewOrderEmail($storeId)) {
+			            //Mage::log('test: ');
+				        // Get the destination email addresses to send copies to
+				        $copyTo = Mage::helper('booking')->_getEmails('sales_email/order/copy_to');
+				        $copyMethod = Mage::getStoreConfig('sales_email/order/copy_method', $storeId);
+			
+			            $customerName = $order->getCustomerName();
+			            	        
+			            ////**** mail function to guest starts ****/
+				        // Retrieve corresponding email template id
+			            $templateId = Mage::getStoreConfig('property_section/custom_email/guestbookingsecurecode_template', $storeId);
+			
+						try {
+					        $mailer = Mage::getModel('core/email_template_mailer');
+					        $emailInfo = Mage::getModel('core/email_info');
+					        $emailInfo->addTo($guest->getEmail(), $guest->getName());
+					        if ($copyTo && $copyMethod == 'bcc') {
+					            // Add bcc to customer email
+					            foreach ($copyTo as $email) {
+					                $emailInfo->addBcc($email);
+					            }
+					        }
+					        $mailer->addEmailInfo($emailInfo);
+					
+					        // Email copies are sent as separated emails if their copy method is 'copy'
+					        if ($copyTo && $copyMethod == 'copy') {
+					            foreach ($copyTo as $email) {
+					                $emailInfo = Mage::getModel('core/email_info');
+					                $emailInfo->addTo($email);
+					                $mailer->addEmailInfo($emailInfo);
+					            }
+					        }
+					
+					        // Set all required params and send emails
+					        $mailer->setSender(Mage::getStoreConfig('sales_email/order/identity', $storeId));
+					        $mailer->setStoreId($storeId);
+					        $mailer->setTemplateId($templateId);
+					        $mailer->setTemplateParams(array(
+					                'order'        => $order,
+					                'room_name'	   => $product->getName(),
+					                'checkin_date' => date('l, F d, Y', strtotime($item->getCheckin())),
+					                'secure_code'  => $secureCode
+					            )
+					        );
+					        $mailer->send();
+					        //echo 'mail sent';
+			    	    } catch (Exception $e) {
+						    throw $e;
+						}
+						////**** mail function to guest ends ****/
+						
+			        }
+					//**** mails to guest ends ****/
+		
+		        }
+			}
+		}
+		     
+	}
+	
+	public function sendreminderAction() {
+
+		$dueDate = date('Y-m-d H:i:s', strtotime("-24 hours") );
+		$collection = Mage::getModel('booking/booking')->getCollection()
+				->addFieldToFilter('booking_status', 0)
+				->addFieldToFilter('created_at', array('gteq' => $dueDate));
+				//->addFieldToFilter('key_status', 0);
+		//echo $collection->getSelect();
+		if($collection->count() > 0) {
+			foreach($collection as $_booking) {
+				//echo '<pre>'; print_r($_booking->getData()); echo '</pre>';
+				$item = Mage::getModel('booking/booking')->load($_booking->getBookingId());
+				$order = Mage::getModel('sales/order')->load($item->getOrderId());
+				if($order) {		        
+			        //**** mails to host starts ****/
+			        //get host details
+			        $host = Mage::getModel('customer/customer')->load($item->getHostId());
+			        $storeId = Mage::app()->getStore()->getStoreId();
+			        //Mage::log('Check: ' . $host . ' -- ' . $storeId);
+			        $product = Mage::getModel('catalog/product')->load($item->getProductId());
+			        
+			            //Mage::log('test: ');
+				        // Get the destination email addresses to send copies to
+				        $copyTo = Mage::helper('booking')->_getEmails('sales_email/order/copy_to');
+				        $copyMethod = Mage::getStoreConfig('sales_email/order/copy_method', $storeId);
+			
+			            $customerName = $order->getCustomerName();
+
+				        // Start store emulation process
+				        $appEmulation = Mage::getSingleton('core/app_emulation');
+				        $initialEnvironmentInfo = $appEmulation->startEnvironmentEmulation($storeId);
+				
+				        try {
+				            // Retrieve specified view block from appropriate design package (depends on emulated store)
+				            $paymentBlock = Mage::helper('payment')->getInfoBlock($order->getPayment())
+				                ->setIsSecureMode(true);
+				            $paymentBlock->getMethod()->setStore($storeId);
+				            $paymentBlockHtml = $paymentBlock->toHtml();
+				        } catch (Exception $exception) {
+				            // Stop store emulation process
+				            $appEmulation->stopEnvironmentEmulation($initialEnvironmentInfo);
+				            throw $exception;
+				        }
+				
+				        // Stop store emulation process
+				        $appEmulation->stopEnvironmentEmulation($initialEnvironmentInfo);
+			        
+			            ////**** mail function to guest starts ****/
+				        // Retrieve corresponding email template id
+			            $templateId = Mage::getStoreConfig('property_section/custom_email/hostbookingreminder_template', $storeId);
+			
+						try {
+					        $mailer = Mage::getModel('core/email_template_mailer');
+					        $emailInfo = Mage::getModel('core/email_info');
+					        $emailInfo->addTo($host->getEmail(), $host->getName());
+					        if ($copyTo && $copyMethod == 'bcc') {
+					            // Add bcc to customer email
+					            foreach ($copyTo as $email) {
+					                $emailInfo->addBcc($email);
+					            }
+					        }
+					        $mailer->addEmailInfo($emailInfo);
+					
+					        // Email copies are sent as separated emails if their copy method is 'copy'
+					        if ($copyTo && $copyMethod == 'copy') {
+					            foreach ($copyTo as $email) {
+					                $emailInfo = Mage::getModel('core/email_info');
+					                $emailInfo->addTo($email);
+					                $mailer->addEmailInfo($emailInfo);
+					            }
+					        }
+					
+					        // Set all required params and send emails
+					        $mailer->setSender(Mage::getStoreConfig('sales_email/order/identity', $storeId));
+					        $mailer->setStoreId($storeId);
+					        $mailer->setTemplateId($templateId);
+					        $mailer->setTemplateParams(array(
+				                'order'        => $order,
+				                'billing'      => $order->getBillingAddress(),
+				                'payment_html' => $paymentBlockHtml,
+				                'host_name'	   => $host->getFirstname()
+					            )
+					        );
+					        $mailer->send();
+					        //echo 'mail sent';
+			    	    } catch (Exception $e) {
+						    throw $e;
+						}
+						////**** mail function to host ends ****/
+						
+					//**** mails to host ends ****/
+		
+		        }
+		        
+			}
+		}
+	}
+	
+}

@@ -1,0 +1,43 @@
+<?php
+    $_product = $this->getProduct();
+    $_helper = $this->helper('catalog/output');
+?>
+<?php if (count($this->getGalleryImages()) > 0) { ?>
+	<div class="connected-carousels">
+	    <div class="stage">
+	        <div class="carousel carousel-stage">
+	            <ul>
+	            <?php foreach ($this->getGalleryImages() as $_image) { ?>
+	                <li>
+		                <a class="fancybox" title="<?php echo $this->escapeHtml($_image->getLabel()) ?>" data-fancybox-group="gallery" href="<?php echo $this->helper('catalog/image')->init($this->getProduct(), 'image', $_image->getFile()); ?>">
+			                <img src="<?php echo $this->helper('catalog/image')->init($this->getProduct(), 'image', $_image->getFile())->constrainOnly(TRUE)->keepAspectRatio(TRUE)->keepFrame(FALSE)->resize(600, null); ?>" max-width="600" alt="<?php echo $this->escapeHtml($_image->getLabel()) ?>" />
+		                </a>
+	                </li>
+	            <?php } ?>
+	            </ul>
+	        </div>
+	
+	        <a href="#" class="prev prev-stage"><span>&lsaquo;</span></a>
+	        <a href="#" class="next next-stage"><span>&rsaquo;</span></a>
+	    </div>
+	
+	    <div class="navigation">
+	        <a href="#" class="prev prev-navigation">&lsaquo;</a>
+	        <a href="#" class="next next-navigation">&rsaquo;</a>
+	        <div class="carousel carousel-navigation">
+	            <ul>
+	            <?php foreach ($this->getGalleryImages() as $_image) { ?>
+	                <li><div class="image-holder"><img src="<?php echo $this->helper('catalog/image')->init($this->getProduct(), 'thumbnail', $_image->getFile())->constrainOnly(TRUE)->keepAspectRatio(TRUE)->keepFrame(FALSE)->resize(50, 50); ?>" width="50" height="45" alt="<?php echo $this->escapeHtml($_image->getLabel()) ?>"></div></li>
+	            <?php } ?>
+	            </ul>
+	        </div>
+	    </div>
+	</div>
+<?php } else { ?>
+	<p class="product-image">
+	    <?php
+	        $_img = '<img src="'.$this->helper('catalog/image')->init($_product, 'image')->resize(265).'" alt="'.$this->escapeHtml($this->getImageLabel()).'" title="'.$this->escapeHtml($this->getImageLabel()).'" />';
+	        echo $_helper->productAttribute($_product, $_img, 'image');
+	    ?>
+	</p>
+<?php } ?>

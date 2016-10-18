@@ -1,0 +1,295 @@
+<?php
+$id = (int)Mage::app()->getRequest()->getParam('id');
+$room = Mage::getModel('listroom/listroom')->load($id);
+$lat = '';
+$lnt = '';
+if($room->getRoomLat() != '' && $room->getRoomLnt() != '') {
+	$lat = $room->getRoomLat();
+	$lnt = $room->getRoomLnt();
+}
+?>
+<!--<script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyDY0kkJiTPVd2U7aTOAwhc9ySH6oHxOIYM&sensor=false"></script>-->
+<script type="text/javascript">
+function initialize()
+{
+	var myLatlng = new google.maps.LatLng(<?php echo $lat.",".$lnt ?>);
+	var mapProp = {
+	center:new google.maps.LatLng(<?php echo $lat.",".$lnt ?>),
+	zoom:13,
+	mapTypeId:google.maps.MapTypeId.ROADMAP
+	};
+	var map=new google.maps.Map(document.getElementById("maps_div"),mapProp);
+	
+	var marker = new google.maps.Marker({
+	  position: myLatlng,
+	  map: map,
+	  title: '<?php echo $this->htmlEscape($room->getTitle()); ?>'
+	});
+	var markerContent = '<h1 style="font-size:16px; font-weight:bold;"><?php echo $room->getTitle()?></h1>'+
+						'<h3 style="font-size:12px; font-weight:normal;"><?php if(trim($room->getLocality()) != '') { echo $room->getLocality() . ','; } ?> <?php echo $room->getCity()?></h3>'+
+						'<h3 style="font-size:12px; font-weight:normal;"><?php echo $room->getState()?>, <?php echo $room->getCountry()?></h3>';
+	var infowindow = new google.maps.InfoWindow({
+		content: markerContent,
+		maxWidth: 300
+	});
+	bindInfoWindow(marker, map, infowindow, markerContent);
+}
+google.maps.event.addDomListener(window, 'load', initialize);
+
+var bindInfoWindow = function(marker, map, infowindow, html) {
+	google.maps.event.addListener(marker, 'click', function() {
+		infowindow.setContent(html);
+		infowindow.open(map, marker);
+	});
+}
+</script>
+
+<div class="col-main">
+    <div id="content_wrapper" class="clearfix">
+        <div id="rooms_grid" class="clearfix need_room_wrapper">					
+			<div class="middle_roof clearfix">
+                <div id="room_snapshot">
+                    <h1><?php echo $this->htmlEscape($room->getTitle()) ?></h1>
+                    <h3><?php if(trim($room->getLocality()) != '') { echo $room->getLocality() . ' - '; } ?> <span id="display_address"><?php echo $room->getCity() . ", " . $room->getState(); ?></span></h3>
+                    <h3><span id="display_address"><?php echo $room->getCountry(); ?></span></h3>
+                </div>
+                <div id="nearby_room">
+                	<a href="<?php echo $this->getUrl('listroom/search/index', array('searchTextField' => $room->getCity()))?>" id="back_to_search_link"><?php echo $this->__('View Nearby Properties')?></a>
+                </div>
+                <div class="clearer"></div>
+            </div>
+            <div id="rooms">
+				<div id="room" class="clearfix">
+					<div id="content_view">
+						<div id="left_column">
+							<div id="main_content" class="box">
+								<div class="middle">
+									<h2 style="color: gray;"><?php echo $this->__('Map'); ?></h2>
+	                                <div id="maps_div" class="main_contents" style="width:620px; height:500px; display:block;"></div>
+	                                <!-- Booking Calendar End-->
+	                                <div class="clear"></div>
+                            	</div>
+                            	
+                            	<div id="details" class="box webview">
+									<div class="middle clearfix">
+										<ul id="details_sub_nav" class="rooms_sub_nav clearfix">
+                                            <li onclick="select_tab('details', 'description', jQuery(this));" class="details_link selected" id="description_link"><a href="javascript:void(0);"><?php echo $this->__('Description'); ?></a></li>
+                                            <li onclick="select_tab('details', 'amenities', jQuery(this));" class="details_link"><a href="javascript:void(0);" id="amenities_link"><?php echo $this->__('Amenities'); ?></a></li>
+                                        </ul>
+                                        
+                                        <!-- Property Details & Description Start -->
+                                        <div id="description" class="details_content">
+                                            <div id="description_text">
+                                                <div id="description_text_wrapper" class="trans">
+                                                    <div class="content" style="text-indent: 10px; text-align: justify;">
+                                                        <div class="left left_desc"><?php echo nl2br($room->getdescription()); ?></div>
+                                                        <ul id="description_details">
+                                                            <li class="clearfix alt">
+                                                            <?php
+                                                            $propertyTypeId = Mage::helper('property')->getPropertyTypeAttrId();
+                                                			$propertyTypeAttribute = Mage::getModel('eav/config')->getAttribute('catalog_product', $propertyTypeId);
+                                                            $propertTypeCollection = $propertyTypeAttribute->getSource()->getAllOptions();
+															//echo '<pre>'; print_r($propertTypeCollection); echo '</pre>';
+															if(count($propertTypeCollection) > 0) {
+																$propTypeArray = array();
+																foreach ($propertTypeCollection as $_propType) {
+																	if($_propType['value'] != '') {
+																		$propTypeVal = $_propType['value'];
+																		$propTypeArray[$propTypeVal] = $_propType['label'];
+																	}
+																}
+															}
+                                                            ?>
+                                                                <span class="property"><?php echo $this->__('Property type') ?> :</span>
+                                                                <span id="room type_val" class="value_description"><?php echo $propTypeArray[$room->getPropertyType()]; ?></span>
+                                                            </li>
+                                                            <li class="clearfix ">
+                                                            <?php
+                                                            $roomTypeId = Mage::helper('property')->getRoomTypeAttrId();
+                                                			$roomTypeAttribute = Mage::getModel('eav/config')->getAttribute('catalog_product', $roomTypeId);
+                                                            $roomTypeCollection = $roomTypeAttribute->getSource()->getAllOptions();
+															//echo '<pre>'; print_r($propertTypeCollection); echo '</pre>';
+															if(count($roomTypeCollection) > 0) {
+																$roomTypeArray = array();
+																foreach ($roomTypeCollection as $_roomType) {
+																	if($_roomType['value'] != '') {
+																		$roomTypeVal = $_roomType['value'];
+																		$roomTypeArray[$roomTypeVal] = $_roomType['label'];
+																	}
+																}
+															}
+                                                            ?>
+                                                                <span class="property"><?php echo $this->__('Room type') ?>:</span>
+                                                                <span id="bed type_val" class="value_description"><?php echo $roomTypeArray[$room->getRoomType()]; ?></span>
+                                                            </li>
+                                                            
+                                                            <li class="clearfix alt">
+                                                                <span class="property"><?php echo $this->__('Accommodates') ?>:</span>
+                                                                <span id="country_val" class="value_description"><?php echo $room->getAccommodates(); ?></span>
+                                                            </li>
+                                                            <li class="clearfix">
+                                                                <span class="property"><?php echo $this->__('From date') ?>:</span>
+                                                                <span id="country_val" class="value_description"><?php echo date('m/d/Y', strtotime($room->getFrom())); ?></span>
+                                                            </li>                                                            
+                                                            <li class="clearfix alt">
+                                                                <span class="property"><?php echo $this->__('To date') ?>:</span>
+                                                                <span id="country_val" class="value_description"><?php echo date('m/d/Y', strtotime($room->getTo())); ?></span>
+                                                            </li>
+                                                                                                                        
+                                                            <?php if(trim($room->getLocality()) != '') { ?>
+                                                            <li class="clearfix alt">
+                                                                <span class="property"><?php echo $this->__('Locality') ?>:</span>
+                                                                <span id="country_val" class="value_description"><?php echo $room->getLocality(); ?></span>
+                                                            </li>
+                                                            <?php } ?>
+                                                            <li class="clearfix alt">
+                                                                <span class="property"><?php echo $this->__('City') ?>:</span>
+                                                                <span id="country_val" class="value_description"><?php echo $room->getCity(); ?></span>
+                                                            </li>
+                                                            <li class="clearfix">
+                                                                <span class="property"><?php echo $this->__('State') ?>:</span>
+                                                                <span id="country_val" class="value_description"><?php echo $room->getState(); ?></span>
+                                                            </li>
+                                                            <li class="clearfix alt">
+                                                                <span class="property"><?php echo $this->__('Country') ?>:</span>
+                                                                <span id="country_val" class="value_description"><?php echo $room->getCountry(); ?></span>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- Property Details & Description End -->
+                                        
+                                        <!-- Amenities existing To Property Start-->
+                                        <div id="amenities" style="display: none; padding:10px"  class="details_content">
+                                            <ul class="amenities_list">
+                                                <?php
+                                                $getamenity = explode(',', $room->getAmenity());
+
+                                                $amenityId = Mage::helper('property')->getAmenitiesAttrId();
+                                                $amenityAttribute = Mage::getModel('eav/config')->getAttribute('catalog_product', $amenityId);
+
+                                                $amenityCollection = $amenityAttribute->getSource()->getAllOptions();
+                                                $totalAmenity = count($amenityCollection);
+
+                                                $x = 1;
+
+                                                foreach ($amenityCollection as $amenity) {
+
+                                                    $value = $amenity['value'];
+                                                    $checkAmenity = $getamenity[$i];
+                                                    if ($value != '') {
+
+                                                        if ($x == 1)
+                                                            echo "<ul>";
+
+                                                        if (in_array($amenity['label'], $getamenity)) {
+                                                            ?><li style="padding: 3px 0px;">
+                                                                <img src="<?php echo $this->getSkinUrl('images/Tick_32.png') ?>" style="vertical-align: middle" width="16" height="16">
+                                                                <?php echo $amenity['label']; ?> </li><?php
+                                                            } else {
+                                                                ?><li style="padding: 3px 0px;">
+                                                                <img src="<?php echo $this->getSkinUrl('images/Cross-32.png'); ?>" style="vertical-align: middle" width="16" height="16">
+                                                            <?php echo $amenity['label']; ?>
+                                                            </li> <?php
+                                            }
+
+                                            if ($x % 6 == 0)
+                                                echo "</ul><ul>";
+
+                                            if ($x == $totalAmenity)
+                                                echo "</ul>";
+
+                                            $x++;
+                                        }
+                                    }
+                                                ?>
+                                            </ul>
+                                            <div class="clear"></div>
+                                        </div>
+                                        <!-- Amenities existing To Property End-->
+									</div>
+								</div>
+                            	
+                           	</div>
+						</div>
+						<div id="right_column" class="mobgrid">
+                            <div id="book_it" class="box">
+                                <div class="middle">
+                                    <div id="pricing" class="book_it_section">
+                                        <div class="clear"></div>
+                                    </div>
+                                    <div class="profile_pic clearfix">
+                                    <?php $customer_data = Mage::getModel('customer/customer')->load($room->getUserId()); ?>
+                                        <div class="_pm_container">
+                                            <div class="_pm clearfix">
+                                                <div class="_pm_inner clearfix">
+                                                    <?php
+                                                        $profilePhoto = Mage::helper('customerextend')->getCustomerProfileImage($room->getUserId());
+                                                        if ($profilePhoto != "") {
+                                                        	$_imageUrl = Mage::getBaseDir('media') . "/catalog/customer/" . $profilePhoto;
+                                                    ?>
+                                                        <a href="<?php echo $this->getUrl('customerextend/index/profile', array('id' => $room->getUserId())) ?>">
+                                                            <?php echo "<img class='profilephoto' src='" . Mage::getBaseUrl('media') . "catalog/customer/" . $profilePhoto . "' /> "; ?>
+                                                        </a>
+                                                    <?php } else { ?>
+		                                            	<?php if($customer_data->getLoginProvider() == 'Facebook' && $customer_data->getFacebookUserid() != '') { ?>
+		                                            		<a href="<?php echo $this->getUrl('customerextend/index/profile', array('id' => $customer_id))?>"><img class='profilephoto' src='https://graph.facebook.com/<?php echo $customer_data->getFacebookUserid() ?>/picture?type=large' /></a>
+		                                            	<?php } else { ?>
+		                                            	 <a href="<?php echo $this->getUrl('customerextend/index/profile', array('id' => $customer_id))?>"><?php echo "<img class='profilephoto' src='" . $this->getSkinUrl('images/no_user.jpg') . "' /> "; ?></a>
+		                                            	 <?php } ?>
+													<?php }  ?>
+													
+												</div>
+											</div>
+										</div>
+                                    </div>
+                                    <div id="pricing" class="book_it_section">
+                                        <a href="<?php echo $this->getUrl('customerextend/index/profile', array('id' => $room->getUserId())) ?>" >
+                                            <b><?php echo $customer_data->getName(); ?></b><br>
+                                        </a>
+										<?php $display_contactme = Mage::getStoreConfig('property_section/layout_settings/display_contactme'); ?>
+	                                    <?php if($display_contactme) { ?>
+											<div id="contact_wrapper">
+		                                    <?php if (!Mage::getSingleton('customer/session')->isLoggedIn()) { ?>
+												<a onclick="javascript:apptha_sociallogin();" href="javascript:void(0)" class="button-glossy blue" id="contact_link"><?php echo $this->__('Contact Me'); ?></a>
+											<?php } else { ?>
+												<?php $userId = Mage::getSingleton('customer/session')->getCustomer()->getId(); ?>
+												<?php if($userId == $room->getUserId()) { ?>
+													<a onclick="javascript:alert('You cannot send message to yourself.')" href="javascript:void(0)" class="button-glossy blue" id="contact_link"><?php echo $this->__('Contact Me'); ?></a>
+												<?php } else { ?>
+													<a href="<?php echo $this->getUrl('listroom/index/contact', array('cid' => $room->getUserId(), 'rid' => $room->getId()))?>" class="fancybox fancybox.ajax button-glossy blue" id="contact_link"><?php echo $this->__('Contact Me'); ?></a>
+												<?php } ?>
+											<?php } ?>
+		                                    </div>
+	                                    <?php } ?>
+	                                </div>
+	                                <div class="clear"></div>
+                             
+                                </div>
+                            </div>
+                      
+                        </div>
+                    </div>
+			    </div>
+			</div>
+			
+        </div>
+    </div>
+</div>
+<div class="appthafacebox-opacity" id="popup_overlay"></div>
+<script type="text/javascript">
+$j(document).ready(function() {
+	$j('.fancybox').fancybox();
+});
+
+function select_tab(c,a,b){
+    $j("."+c+"_link").removeClass("selected");
+    b.addClass("selected");
+    $j("#"+a).show();
+    $j("."+c+"_content").hide();
+    $j("#"+a).show()
+}
+</script>

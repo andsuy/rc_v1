@@ -1,0 +1,9 @@
+a:5:{i:0;s:210:"Error in file: "/home/sillp2014/public_html/roomcrunch/app/code/core/Mage/Core/sql/core_setup/install-1.6.0.0.php" - SQLSTATE[42S01]: Base table or view already exists: 1050 Table 'core_resource' already exists";i:1;s:1064:"#0 /home/sillp2014/public_html/roomcrunch/app/code/core/Mage/Core/Model/Resource/Setup.php(645): Mage::exception('Mage_Core', 'Error in file: ...')
+#1 /home/sillp2014/public_html/roomcrunch/app/code/core/Mage/Core/Model/Resource/Setup.php(421): Mage_Core_Model_Resource_Setup->_modifyResourceDb('install', '', '1.6.0.4')
+#2 /home/sillp2014/public_html/roomcrunch/app/code/core/Mage/Core/Model/Resource/Setup.php(327): Mage_Core_Model_Resource_Setup->_installResourceDb('1.6.0.4')
+#3 /home/sillp2014/public_html/roomcrunch/app/code/core/Mage/Core/Model/Resource/Setup.php(235): Mage_Core_Model_Resource_Setup->applyUpdates()
+#4 /home/sillp2014/public_html/roomcrunch/app/code/core/Mage/Core/Model/App.php(417): Mage_Core_Model_Resource_Setup::applyAllUpdates()
+#5 /home/sillp2014/public_html/roomcrunch/app/code/core/Mage/Core/Model/App.php(343): Mage_Core_Model_App->_initModules()
+#6 /home/sillp2014/public_html/roomcrunch/app/Mage.php(684): Mage_Core_Model_App->run(Array)
+#7 /home/sillp2014/public_html/roomcrunch/index.php(87): Mage::run('', 'store')
+#8 {main}";s:3:"url";s:83:"/roomcrunch/index.php/admin/cache/flushSystem/key/cd1a751320afcd9552c2e58a5bcc2fd0/";s:11:"script_name";s:21:"/roomcrunch/index.php";s:4:"skin";s:7:"default";}

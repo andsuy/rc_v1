@@ -1,0 +1,346 @@
+<?xml version="1.0"?>
+<config>
+  <modules>
+    <Si_Property>
+      <version>0.1.1</version>
+    </Si_Property>
+  </modules>
+  <frontend>
+    <routers>
+      <property>
+        <use>standard</use>
+          <args>
+            <module>Si_Property</module>
+            <frontName>property</frontName>
+          </args>
+      </property>
+    </routers>
+		<layout>
+		  <updates>
+			<property>
+			  <file>property.xml</file>
+			</property>
+		  </updates>
+		</layout>
+  </frontend>
+  <global>
+  	<rewrite>
+        <si_property_checkout_cart_add>
+            <from><![CDATA[#^/checkout/cart/#]]></from>
+            <to>/property/checkout_cart/</to>
+        </si_property_checkout_cart_add>
+    </rewrite>
+        
+    <helpers>
+      <property>
+        <class>Si_Property_Helper</class>
+      </property>
+    </helpers>
+	<blocks>
+	  <property>
+		<class>Si_Property_Block</class>
+	  </property>
+	  
+		<customer>
+			<rewrite>
+				<account_navigation>Si_Property_Block_Account_Navigation</account_navigation>
+			</rewrite>
+		</customer>
+		<!--<catalog>
+            <rewrite>
+                <product_view>Si_Property_Block_Product_View</product_view>
+            </rewrite>
+        </catalog>-->
+	</blocks>
+	<models>
+	  <property>
+		<class>Si_Property_Model</class>
+		<resourceModel>property_mysql4</resourceModel>
+	  </property>
+	  <property_mysql4>
+		<class>Si_Property_Model_Mysql4</class>
+		<entities>
+			  <propertyavailablity>
+				<table>property_availability</table>
+			  </propertyavailablity>
+			  <propertylocation>
+				<table>property_location</table>
+			  </propertylocation>
+        </entities>
+	  </property_mysql4>
+	  
+		<catalog>
+			<rewrite>
+				<product_type_virtual>Si_Property_Model_Product_Type_Virtual</product_type_virtual>
+			</rewrite>
+		</catalog>
+		<sales>
+			<rewrite>
+				<order>Si_Property_Model_Sales_Order</order>
+			</rewrite>
+		</sales>
+			
+	</models>
+	<events>
+	  <catalog_product_load_after>
+        <observers>
+          <catalog_product_load_after_handler>
+            <type>model</type>
+            <class>property/observer</class>
+            <method>catalogProductLoadAfter</method>
+            <args></args>
+          </catalog_product_load_after_handler>
+        </observers>
+      </catalog_product_load_after>
+	  <sales_convert_quote_item_to_order_item>
+        <observers>
+          <sales_convert_quote_item_to_order_item_handler>
+            <type>model</type>
+            <class>property/observer</class>
+            <method>salesConvertQuoteItemToOrderItem</method>
+            <args></args>
+          </sales_convert_quote_item_to_order_item_handler>
+        </observers>
+      </sales_convert_quote_item_to_order_item>
+	  <checkout_cart_product_add_after>
+        <observers>
+          <checkout_cart_product_add_after_handler>
+            <type>model</type>
+            <class>property/observer</class>
+            <method>checkoutCartProductAddAfter</method>
+            <args></args>
+          </checkout_cart_product_add_after_handler>
+        </observers>
+      </checkout_cart_product_add_after>
+      <checkout_cart_save_before>
+        <observers>
+          <checkout_cart_save_before_handler>
+            <type>model</type>
+            <class>property/observer</class>
+            <method>checkoutCartSaveBefore</method>
+            <args></args>
+          </checkout_cart_save_before_handler>
+        </observers>
+      </checkout_cart_save_before>
+      <checkout_submit_all_after>
+        <observers>
+          <checkout_submit_all_after_handler>
+            <type>model</type>
+            <class>property/observer</class>
+            <method>processBookingAfterCheckout</method>
+            <args></args>
+          </checkout_submit_all_after_handler>
+        </observers>
+      </checkout_submit_all_after>
+      
+      <sales_order_status_save_after>
+        <observers>
+          <sales_order_status_save_after_handler>
+            <type>model</type>
+            <class>property/observer</class>
+            <method>updateBookingOrderStatus</method>
+            <args></args>
+          </sales_order_status_save_after_handler>
+        </observers>
+      </sales_order_status_save_after>
+      
+    </events>
+    
+    <template>
+        <email>
+            <property_section_custom_email_hostbookinginfo_template module="property">
+                <label>Booking Info to Host Template</label>
+                <file>property/booking_info_host_template.html</file>
+                <type>html</type>
+            </property_section_custom_email_hostbookinginfo_template>
+            <property_section_custom_email_guestbookingconfirm_template module="property">
+                <label>Booking Confirmation Guest Template</label>
+                <file>property/booking_confirmation_guest_template.html</file>
+                <type>html</type>
+            </property_section_custom_email_guestbookingconfirm_template>
+            <property_section_custom_email_hostbookingconfirm_template module="property">
+                <label>Booking Confirmation Host Template</label>
+                <file>property/booking_confirmation_host_template.html</file>
+                <type>html</type>
+            </property_section_custom_email_hostbookingconfirm_template>
+            <property_section_custom_email_guestbookingsecurecode_template module="property">
+                <label>Booking Secure Code Guest Template</label>
+                <file>property/booking_securecode_guest_template.html</file>
+                <type>html</type>
+            </property_section_custom_email_guestbookingsecurecode_template>
+            <property_section_custom_email_guestbookingcancel_template module="property">
+                <label>Booking Cancel Guest Template</label>
+                <file>property/booking_cancel_guest_template.html</file>
+                <type>html</type>
+            </property_section_custom_email_guestbookingcancel_template>
+            <property_section_custom_email_hostbookingcancel_template module="property">
+                <label>Booking Cancel Host Template</label>
+                <file>property/booking_cancel_host_template.html</file>
+                <type>html</type>
+            </property_section_custom_email_hostbookingcancel_template>
+            <property_section_custom_email_guestbookingcreditmemo_template module="property">
+                <label>Booking Credit Memo Guest Template</label>
+                <file>property/booking_creditmemo_guest_template.html</file>
+                <type>html</type>
+            </property_section_custom_email_guestbookingcreditmemo_template>
+            <property_section_custom_email_hostbookingcreditmemo_template module="property">
+                <label>Booking Credit Memo Host Template</label>
+                <file>property/booking_creditmemo_host_template.html</file>
+                <type>html</type>
+            </property_section_custom_email_hostbookingcreditmemo_template>
+            <property_section_custom_email_adminbookingcreditmemo_template module="property">
+                <label>Booking Credit Memo Admin Template</label>
+                <file>property/booking_creditmemo_admin_template.html</file>
+                <type>html</type>
+            </property_section_custom_email_adminbookingcreditmemo_template>
+            
+            <property_section_custom_email_guestbookingcreditmemo_byguest_template module="property">
+                <label>Booking Credit Memo by Guest Guest Template</label>
+                <file>property/booking_creditmemo_byguest_guest_template.html</file>
+                <type>html</type>
+            </property_section_custom_email_guestbookingcreditmemo_byguest_template>
+            <property_section_custom_email_hostbookingcreditmemo_byguest_template module="property">
+                <label>Booking Credit Memo by Guest Host Template</label>
+                <file>property/booking_creditmemo_byguest_host_template.html</file>
+                <type>html</type>
+            </property_section_custom_email_hostbookingcreditmemo_byguest_template>
+            <property_section_custom_email_adminbookingcreditmemo_byguest_template module="property">
+                <label>Booking Credit Memo by Guest Admin Template</label>
+                <file>property/booking_creditmemo_byguest_admin_template.html</file>
+                <type>html</type>
+            </property_section_custom_email_adminbookingcreditmemo_byguest_template>
+            
+            <property_section_custom_email_hostbookingreminder_template module="property">
+                <label>Booking Reminder Host Template</label>
+                <file>property/booking_reminder_host_template.html</file>
+                <type>html</type>
+            </property_section_custom_email_hostbookingreminder_template>
+        </email>
+    </template>
+    
+	<resources>
+	  <property_setup>
+		<setup>
+		  <module>Si_Property</module>
+		</setup>
+		<connection>
+		  <use>core_setup</use>
+		</connection>
+	  </property_setup>
+	  <property_write>
+		<connection>
+		  <use>core_write</use>
+		</connection>
+	  </property_write>
+	  <property_read>
+		<connection>
+		  <use>core_read</use>
+		</connection>
+	  </property_read>
+	</resources>
+  </global>
+  <admin>
+	<routers>
+	  <property>
+	    <use>admin</use>
+		<args>
+		  <module>Si_Property</module>
+		  <frontName>property</frontName>
+		</args>
+	  </property>
+	</routers>
+  </admin>
+  <adminhtml>
+	<!--<menu>
+	  <property module="property">
+		<title>Property</title>
+		<sort_order>100</sort_order>
+		<children>
+		  <propertyavailablity module="property">
+		    <title>Manage Propertyavailablity</title>
+			<sort_order>0</sort_order>
+			<action>property/adminhtml_propertyavailablity</action>
+		  </propertyavailablity>
+		</children>
+	  </property>
+	</menu>-->
+	<acl>
+	  <resources>
+		<all>
+		  <title>Allow Everything</title>
+		</all>
+		<admin>
+		  <children>
+			<property translate="title" module="property">
+			  <title>Property</title>
+			  <sort_order>1000</sort_order>
+			  <children>
+		  <propertyavailablity translate="title">
+			<title>Manage Propertyavailablity</title>
+			<sort_order>0</sort_order>
+		  </propertyavailablity>
+			  </children>
+			</property>
+		  </children>
+		</admin>
+	  </resources>
+	</acl>
+	<layout>
+	  <updates>
+		<property>
+		  <file>property.xml</file>
+		</property>
+	  </updates>
+	</layout>
+  </adminhtml>
+	<default>
+		<property_section>
+			<general>
+				<enable>0</enable>
+				<google_api_key></google_api_key>
+				<processing_fee>3</processing_fee>
+				<commission_fee>15</commission_fee>
+			</general>
+			<custom_email>
+				<!--<property_approval>0</property_approval>-->
+				<admin_email_id>general</admin_email_id>
+				<hostbookinginfo_template>property_section_custom_email_hostbookinginfo_template</hostbookinginfo_template>
+				<guestbookingconfirm_template>property_section_custom_email_guestbookingconfirm_template</guestbookingconfirm_template>
+				<hostbookingconfirm_template>property_section_custom_email_hostbookingconfirm_template</hostbookingconfirm_template>
+				<guestbookingsecurecode_template>property_section_custom_email_guestbookingsecurecode_template</guestbookingsecurecode_template>
+				<guestbookingcancel_template>property_section_custom_email_guestbookingcancel_template</guestbookingcancel_template>
+				<hostbookingcancel_template>property_section_custom_email_hostbookingcancel_template</hostbookingcancel_template>
+				<guestbookingcreditmemo_template>property_section_custom_email_guestbookingcreditmemo_template</guestbookingcreditmemo_template>
+				<hostbookingcreditmemo_template>property_section_custom_email_hostbookingcreditmemo_template</hostbookingcreditmemo_template>
+				<adminbookingcreditmemo_template>property_section_custom_email_adminbookingcreditmemo_template</adminbookingcreditmemo_template>
+				
+				<guestbookingcreditmemo_byguest_template>property_section_custom_email_guestbookingcreditmemo_byguest_template</guestbookingcreditmemo_byguest_template>
+				<hostbookingcreditmemo_byguest_template>property_section_custom_email_hostbookingcreditmemo_byguest_template</hostbookingcreditmemo_byguest_template>
+				<adminbookingcreditmemo_byguest_template>property_section_custom_email_adminbookingcreditmemo_byguest_template</adminbookingcreditmemo_byguest_template>
+				
+				<hostbookingreminder_template>property_section_custom_email_hostbookingreminder_template</hostbookingreminder_template>
+				<!--<newproperty_template></newproperty_template>
+				<propertyapproval_template></propertyapproval_template>
+				<adminapproval_template></adminapproval_template>
+				<adminpropertydelete_template></adminpropertydelete_template>
+				<propertydelete_template></propertydelete_template>
+				<cancelorder_template></cancelorder_template>
+				<property_delete_option>1</property_delete_option>-->
+			</custom_email>
+			<layout_settings>
+				<display_contactme>1</display_contactme>
+				<calender_text></calender_text>
+			</layout_settings>
+			<custom_banner>
+				<homepage_banner>1</homepage_banner>
+				<!--<enable_slider_hoster>0</enable_slider_hoster>-->
+				<banner_count>10</banner_count>
+			</custom_banner>
+			<max_min>
+				<min_value>0</min_value>
+				<max_value>1000</max_value>
+				<range_value>1</range_value>
+			</max_min>
+		</property_section>
+	</default>
+</config> 

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<layout version="0.1.0">
+  <customerextend_adminhtml_customerinfo_index>
+	<reference name="content">
+	  <block type="customerextend/adminhtml_customerinfo" name="customerinfo" />
+	</reference>
+  </customerextend_adminhtml_customerinfo_index>
+  <customerextend_adminhtml_cuspropmsg_index>
+	<reference name="content">
+	  <block type="customerextend/adminhtml_cuspropmsg" name="cuspropmsg" />
+	</reference>
+  </customerextend_adminhtml_cuspropmsg_index>
+  <customerextend_adminhtml_customerpmb_index>
+	<reference name="content">
+	  <block type="customerextend/adminhtml_customerpmb" name="customerpmb" />
+	</reference>
+  </customerextend_adminhtml_customerpmb_index>
+</layout>

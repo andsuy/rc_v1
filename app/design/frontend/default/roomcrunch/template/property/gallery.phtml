@@ -1,0 +1,129 @@
+<?php $product = Mage::getModel('catalog/product')->load($this->getRequest()->getParam('id')); ?>
+<?php $_gallery = $product->getMediaGalleryImages();  ?>
+<?php $imgcount = $product->getMediaGalleryImages()->count();?>
+<?php 
+$customer = Mage::getSingleton('customer/session')->getCustomer();
+$cus_id = $customer->getId();
+$productid = $entityId = $this->getRequest()->getParam('id');
+$products = Mage::getModel('property/property')->getPropertyCollection()
+                                           ->addAttributeToFilter('entity_id', array('eq' => $productid))
+                                           ->addFieldToFilter(array(
+                                             array('attribute' => 'entity_id', 'eq' => $productid)
+                                             ));               
+
+// foreach ($products as $_product) {
+$productObj = Mage::getModel('catalog/product')->load($productid);
+ $name =  $productObj->getName();
+ $imgUrl = $productObj->getImage();       
+   //break;
+ //}
+
+if($imgcount != 0): ?>
+<div class="my-account clearfix">
+<form action="<?php echo $this->getUrl('property/index/albumupdate'); ?>" id="propertyalbum" name="propertyalbum" method="post" enctype="multipart/form-data">
+<div class="more-views">
+    <div class="page-title"><h1 class="arrowbubble"><?php echo $this->__('Gallery For').' '.'"'.$name.'"'; ?></h1></div>
+<table style="border: none; float: left !important;">
+<?php
+$count = 0;
+foreach ($_gallery as $_image ):
+if($imgUrl == $_image->getFile() )
+echo "<tr class='grid_img grid_img_albumcover'> ";
+else
+echo '<tr class="grid_img">';
+
+?>
+	<td style="display: inline; border: none; float: left !important; padding: 10px;">
+	<a href="#"
+		onclick="popWin('<?php echo $this->helper('catalog/image')->init($_product, 'image', $_image->getFile()); ?>', 'gallery', 'width=300,height=300,left=50,top=50,location=no,status=yes,scrollbars=yes,resizable=yes'); return false;"><img
+		src="<?php echo $this->helper('catalog/image')->init($_product, 'thumbnail', $_image->getFile())->resize(100, 100); ?>"
+		alt="<?php echo $this->htmlEscape($_image->getLabel()) ?>"
+		title="<?php echo $this->htmlEscape($_image->getLabel()) ?>"
+		height="100" width="100" /></a> <input type="hidden"
+		value="<?php echo $this->getRequest()->getParam('id'); ?>"
+		name="entity_id" id="entity_id"> <br />
+	<p style="margin: 5px 5px 0px 0px"><input
+		style="vertical-align: middle;" type="radio"
+		value="<?php echo $_image->getfile();?>" name="album_path"
+		id="album_path"
+		<?php
+		if($imgUrl == $_image->getFile())
+		echo " checked='checked' ";
+		?> /> <?php echo $this->__('Album Cover'); ?></p>
+
+	<p style="margin: 5px 5px 0px 0px"><?php  if($imgUrl != $_image->getFile() ) : ?>
+	<input type="checkbox" name="imageCollection[]"
+		value="<?php echo $_image->value_id; ?>" style="margin-right: 5px" /><?php echo $this->__('Remove') ?>
+		<?php
+		else:
+		echo "&nbsp;";
+		endif; ?></p>
+
+	</td>
+	<?php
+	echo '</tr>';
+	$count++;
+	endforeach;
+	?>
+</table>
+</div>
+<div class="buttons-set page-button">
+	<a href="<?php echo $this->geturl('property/index/show') ?>" title="<?php echo $this->__('Back') ?>" style="float:left;"><?php echo $this->__('Back') ?></a>
+	<input type="hidden" name="remove" id="remove_image" value=""/>
+	<button type="submit" onclick="return albumCover()"
+		title="<?php echo $this->__('Save') ?>" class="button"><span><span><?php echo $this->__('Save') ?></span></span></button>
+	<!--<button type="submit" onclick="return imageDelete()" name="remove"
+		value="1" title="<?php echo $this->__('Remove') ?>" class="button"><span><span><?php echo $this->__('Remove') ?></span></span></button>-->
+	<div class="clearer"></div>
+</div>
+</form>
+</div>
+	<?php endif; ?>
+<script type="text/javascript">
+    function imageDelete(){
+        if(jQuery(".more-views input:checkbox:checked").length ){
+            if(confirm('<?php echo $this->__('Are you sure want to remove'); ?>?') ){
+                return true;
+            }
+            else{
+                jQuery("#remove_image").val("");
+                return false;
+            }
+        }
+        else{
+            alert("<?php echo $this->__('Please select at least one image from the gallery'); ?>");
+            return false;
+        }
+       
+
+    }
+    function albumCover(){
+         if(jQuery("[name='album_path']:checked").length ==0 && jQuery(".more-views input:checkbox:checked").length == 0){
+           alert('<?php echo $this->__('Please select one image for album cover') ?>');
+           return false;
+        }
+        if(jQuery(".more-views input:checkbox:checked").length != 0){
+            var rmvlen =  jQuery(".more-views input:checkbox:checked").length;
+            jQuery("#remove_image").val(rmvlen);
+            imageDelete();
+    }
+  }
+</script>
+<?php
+	if($imgcount == 0){?>
+<div style="color: #1D95CB;font-weight: bold; font-size: 22px; margin-left: 10px;"><span><?php echo $this->__('Gallery For').' '.'"'.$name.'"'; ?></span></div>
+	<?php }?>
+<div id="swfupload-control">
+
+
+<p><?php echo $this->__('Upload image files(jpg, png, gif), each having maximum size of 1MB') ?></p>
+
+		<form action="<?php echo $this->getUrl('property/index/imageupload', array('id' => $this->getRequest()->getParam('id')))?>" method="post" enctype="multipart/form-data">
+			<div class="row-fluid">
+				<div class="col-md-4">
+					<input name="files[]" type="file" multiple="multiple" class="multi" accept="gif|jpg|png|jpeg" id="gellery-select" />
+					<button class="button" title="Upload" type="submit" style="margin:10px 0;"><span><span>Upload</span></span></button>
+				</div>
+			</div>
+		</form>
+</div>

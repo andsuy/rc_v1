@@ -1,0 +1,70 @@
+<?php echo $this->getMessagesBlock()->getGroupedHtml() ?>
+<?php $collection = $this->getCollection(); ?>
+<div class="page-title">
+    <h1><?php echo $this->__('Manage My Stays') ?></h1>
+</div>
+<?php echo $this->getPagerHtml(); ?>
+<?php if($collection->getSize()): ?>
+<table class="data-table" id="manage_booking">
+    <thead>
+        <tr>
+            <th><?php echo $this->__('Booking #') ?></th>
+            <th style="width:200px;"><?php echo $this->__('Property') ?></th>
+            <th><?php echo $this->__('Checkin') ?></th>
+            <th><?php echo $this->__('Checkout') ?></th>
+            <th><?php echo $this->__('Order Status') ?></th>
+            <th><?php echo $this->__('Booking Status') ?></th>
+            <th><span class="nobr"><?php echo $this->__('Created At') ?></span></th>
+         	<th style="text-align:center; width:120px;"><?php echo $this->__('Action') ?></th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php $_odd = ''; ?>
+        <?php foreach ($collection as $_obj): ?>
+        <?php
+        	$order = $this->getOrder($_obj->getOrderId());
+        	$item = Mage::getModel('sales/order_item')->load($_obj->getOrderItemId());
+        	$product = $this->getProduct($_obj->getProductId());
+        	$guest = $this->getGuest($_obj->getGuestId());
+        ?>
+        <tr>
+            <td>
+            	<span class="nobr"><a href="<?php echo $this->getUrl('booking/index/guestview', array('id' => $_obj->getBookingId()))?>" title="Click to View Details" class=""><?php echo $order->getIncrementId() ?></a></span>
+            </td>
+            <?php if($product->getName()) { ?>
+				<td style="width:300px;"><a href="<?php echo $product->getProductUrl() ?>"><?php echo $product->getName() ?></a></td>
+			<?php } else { ?>
+				<td style="width:300px;"><?php echo $item->getName() ?></td>
+			<?php } ?>
+			<td><?php echo date('n/j/Y', strtotime($_obj->getCheckin())) ?></td>
+			<td><?php echo date('n/j/Y', strtotime($_obj->getCheckout())) ?></td>
+            <td><i><a href="<?php echo $this->getUrl('sales/order/view', array('order_id' => $order->getId())) ?>" title="View Order"><?php echo $order->getStatusLabel() ?></a></i></td>
+            <td><i><?php echo $this->getBookingStatusLabel($_obj->getBookingStatus()) ?></i></td>
+            <td><?php echo date('n/j/Y', strtotime($_obj->getCreatedAt())) ?></td>
+            <td style="text-align:center; width:120px;">
+            	<span class="nobr">
+            		<?php if(($_obj->getBookingStatus() == 0 || $_obj->getBookingStatus() == 1) && ($_obj->getOrderStatus() != 'canceled' && $_obj->getOrderStatus() != 'pending_payment')) { ?>
+            		<button class="button" type="button" onclick="return processAction('Are you sure to cancel the booking?', '<?php echo $this->getUrl('booking/index/guestcancel', array('id' => $_obj->getBookingId()))?>')">Cancel</button>
+            		<?php } else { ?>
+            		&nbsp; - &nbsp;
+            		<?php } ?>
+            	</span>
+            </td>
+        </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
+<script type="text/javascript">decorateTable('manage_booking');</script>
+<?php echo $this->getPagerHtml(); ?>
+<script type="text/javascript">
+function processAction(msg, url) {
+	var c = confirm(msg);
+	if(!c) {
+		return false;
+	}
+	window.location.href = url;
+}
+</script>
+<?php else: ?>
+    <div class="norecords"><h2><?php echo $this->__('No Records')?></h2></div>
+<?php endif ?>

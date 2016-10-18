@@ -1,0 +1,17 @@
+<?php
+
+
+class Si_Friendlist_Block_Adminhtml_Friendlist extends Mage_Adminhtml_Block_Widget_Grid_Container{
+
+	public function __construct()
+	{
+
+	$this->_controller = "adminhtml_friendlist";
+	$this->_blockGroup = "friendlist";
+	$this->_headerText = Mage::helper("friendlist")->__("Friendlist Manager");
+	$this->_addButtonLabel = Mage::helper("friendlist")->__("Add New Item");
+	parent::__construct();
+	$this->_removeButton('add');
+	}
+
+}

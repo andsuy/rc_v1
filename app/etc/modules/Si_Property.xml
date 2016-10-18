@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<config>
+  <modules>
+    <Si_Property>
+      <active>true</active>
+      <codePool>local</codePool>
+      <version>0.1.2</version>
+    </Si_Property>
+  </modules>
+</config>

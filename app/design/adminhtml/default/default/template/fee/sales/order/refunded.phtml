@@ -1,0 +1,63 @@
+<?php if($this->getSource() instanceof Mage_Sales_Model_Order){ ?>
+<?php if ((float) $this->getSource()->getFeeAmountRefunded()): ?>
+    <tr>
+        <td class="label"><strong><?php echo Mage::helper('fee')->__('Fee refunded to customer') ?></strong></td>
+        <td><strong><?php echo $this->getSource()->getFeeAmountRefunded(); ?></strong></td>
+    </tr>
+<?php endif; ?>
+<?php } else { ?>
+<?php if ((float) $this->getSource()->getFeeAmount()): ?>
+    <tr>
+        <td class="label"><strong><?php echo Mage::helper('fee')->__('Fee Refunded') ?></strong></td>
+        <td><strong><?php echo $this->getSource()->getFeeAmount(); ?></strong></td>
+    </tr>
+<?php endif;
+}?>
+
+<?php if($this->getSource() instanceof Mage_Sales_Model_Order){ ?>
+<?php if ((float) $this->getSource()->getCleaningfeeAmountRefunded()): ?>
+    <tr>
+        <td class="label"><strong><?php echo Mage::helper('fee')->__('Cleaning Fee refunded to customer') ?></strong></td>
+        <td><strong><?php echo $this->getSource()->getCleaningfeeAmountRefunded(); ?></strong></td>
+    </tr>
+<?php endif; ?>
+<?php } else { ?>
+<?php if ((float) $this->getSource()->getCleaningfeeAmount()): ?>
+    <tr>
+        <td class="label"><strong><?php echo Mage::helper('fee')->__('Cleaning Fee Refunded') ?></strong></td>
+        <td><strong><?php echo $this->getSource()->getCleaningfeeAmount(); ?></strong></td>
+    </tr>
+<?php endif; 
+}?>
+
+<?php if($this->getSource() instanceof Mage_Sales_Model_Order){ ?>
+<?php if ((float) $this->getSource()->getExtrafeeAmountRefunded()): ?>
+    <tr>
+        <td class="label"><strong><?php echo Mage::helper('fee')->__('Extra Fee refunded to customer') ?></strong></td>
+        <td><strong><?php echo $this->getSource()->getExtrafeeAmountRefunded(); ?></strong></td>
+    </tr>
+<?php endif; ?>
+<?php } else { ?>
+<?php if ((float) $this->getSource()->getExtrafeeAmount()): ?>
+    <tr>
+        <td class="label"><strong><?php echo Mage::helper('fee')->__('Extra Fee Refunded') ?></strong></td>
+        <td><strong><?php echo $this->getSource()->getExtrafeeAmount(); ?></strong></td>
+    </tr>
+<?php endif; 
+}?>
+
+<?php if($this->getSource() instanceof Mage_Sales_Model_Order){ ?>
+<?php if ((float) $this->getSource()->getDepositAmountRefunded()): ?>
+    <tr>
+        <td class="label"><strong><?php echo Mage::helper('fee')->__('Deposit refunded to customer') ?></strong></td>
+        <td><strong><?php echo $this->getSource()->getDepositAmountRefunded(); ?></strong></td>
+    </tr>
+<?php endif; ?>
+<?php } else { ?>
+<?php if ((float) $this->getSource()->getDepositAmount()): ?>
+    <tr>
+        <td class="label"><strong><?php echo Mage::helper('fee')->__('Deposit Refunded') ?></strong></td>
+        <td><strong><?php echo $this->getSource()->getDepositAmount(); ?></strong></td>
+    </tr>
+<?php endif; 
+}?>

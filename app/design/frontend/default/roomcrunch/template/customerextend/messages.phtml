@@ -1,0 +1,149 @@
+<?php $userConversation = $this->getUsers(); ?>
+<?php //echo '<pre>'; print_r($userConversation); echo '</pre>'; exit; ?>
+<div class="my-account">
+	<div class="page-title inbox-title">
+	    <h1 class="arrowbubble"> <b class="icon_grid sentmail_id "></b> Inbox</h1>
+	</div>
+<?php if(count($userConversation) > 0) { ?>
+	<div id="user_section">
+		<ul class="users_block">
+			<?php $c = 0; ?>
+			<?php foreach ($userConversation as $_user) { ?>
+				<?php $c++; ?>
+				<?php if($c == 1) {$roundClass = 'toproundleft firstli';} elseif ($c == count($userConversation)) { $roundClass = 'bottomroundleft lastli';} else {$roundClass = '';} ?>
+				<li class="user_details <?php echo $roundClass; ?>">
+					<?php if($c == 1) { echo '<input type="hidden" id="fuserId" name="fuserId" value="'. $_user['cid'] .'" />';} ?>
+					<div class="user_image">
+					<?php
+					$userDetails = Mage::getModel('customer/customer')->load($_user['cid']);					
+					if ($_user['image'] != "") {
+						$_imageUrl = Mage::getBaseDir('media') . "/catalog/customer/" . $_user['image'];
+						$imageResized = Mage::getBaseDir('media') . "/catalog/customer/resz_50_" . $_user['image'];
+						if(!file_exists($imageResized) && file_exists($_imageUrl)) {
+							$imageObj = new Varien_Image($_imageUrl);
+							$imageObj->constrainOnly(TRUE);
+							$imageObj->keepAspectRatio(TRUE);
+							$imageObj->keepFrame(FALSE);
+							$imageObj->resize(50, 50);
+							$imageObj->save($imageResized);
+						}					
+						echo "<img class='' src='" . Mage::getBaseUrl('media') . "catalog/customer/resz_50_" . $_user['image'] . "' alt='". $_user['name'] ."' /> ";
+					} else {
+						if($userDetails->getLoginProvider() == 'Facebook' && $userDetails->getFacebookUserid() != '') {
+			            	echo '<img class="" style="max-width:50px; max-height:50px;"  src="https://graph.facebook.com/' . $userDetails->getFacebookUserid() .'/picture?type=large" alt="'. $_user['name'] .'" />';
+			            } else {
+							echo "<img class='' style='max-width:50px; max-height:50px;' src='" . $this->getSkinUrl('images/no_user.jpg') . "' alt='". $_user['name'] ."' /> ";
+			            }
+					}
+					?>
+					</div>
+					<div class="user_msg">
+						<div class="user_msg_top">
+				<?php
+                if(Mage::getStoreConfig('property_section/layout_settings/hide_address')) {
+                	$nameArray = explode(' ', $_user['name']);
+                	$displayName = $nameArray[0];
+                } else {
+                	$displayName = $_user['name'];
+                }
+                ?>
+							<h2 class="user_name"><a href="<?php echo $this->getUrl('customerextend/index/profile', array('id' => $_user['cid']))?>" title="<?php echo $displayName; ?>"><?php echo $displayName; ?></a></h2>
+							<span class="msg_time"><?php if(date('Ymd') == date('Ymd', strtotime($_user['message']['created_at']))) { echo date('g:ia', strtotime($_user['message']['created_at'])); } else {echo date('j-m-Y', strtotime($_user['message']['created_at']));}?></span>
+							<div class="clearer"></div>
+						</div>
+						<div class="user_msg_bottom">
+							<input class="msg_user_id" type="hidden" name="msg_user_id" value="<?php echo $_user['cid'];?>" />
+							<p class="user_lastmsg"><?php echo substr($_user['message']['message'], 0, 35); ?><?php if(strlen($_user['message']['message']) > 15) {echo ' ...';}?></p>
+							<span class="msg_status"><?php if($_user['unread'] > 0) { echo $_user['unread'] . ' new'; }?></span>
+							<div class="clearer"></div>
+						</div>
+					</div>
+					<div class="clearer"></div>
+				</li>
+			<?php } ?>
+		</ul>
+	</div>
+	<div id="message_section">
+		<div id="user-title">
+			<h2 class="user_name">
+				
+			</h2>
+		</div>
+		<div id="user-messages">
+			
+		</div>
+		<div id="input-box">
+			<form action="<?php echo $this->__('customerextend/manage/replypmb') ?>" name="reply" method="post">
+				<input type="hidden" id="rcid" name="rcid" value="0" />
+				<textarea id="replyMessage" name="reply_msg" placeholder="Write a reply..."></textarea>
+				<input type="button" name="reply_button" value="Send" onclick="validateReply()" />
+			</form>
+		</div>
+	</div>
+	
+	<div class="clearer"></div>
+<?php } else { ?>
+	<div class="no-data"><?php echo $this->__('No conversations yet.')?></div>
+<?php } ?>
+</div>
+<script type="text/javascript">
+var $j = jQuery.noConflict();
+$j(document).ready(function(){
+	$j('.user_msg_bottom').click(function(){
+		var uid = $j('.msg_user_id', this).val();
+		$j('#rcid').val(uid);
+		$j("#user-messages").html("<div style='text-align:center;'><img src='<?php echo $this->getSkinUrl('images/advsearch.gif') ?>' /></div>");
+		var headTitle = $j('.user_name', $j(this).parent()).html();
+		$j('#user-title h2').html(headTitle);
+		callMessageAjax(uid);
+	});
+	
+	var fuserId = $j('#fuserId').val();
+	$j('#rcid').val(fuserId);
+	$j("#user-messages").html("<div style='text-align:center;'><img src='<?php echo $this->getSkinUrl('images/advsearch.gif') ?>' /></div>");
+	var headTitle = $j('li.firstli h2.user_name').html();
+	$j('#user-title h2').html(headTitle);
+	callMessageAjax(fuserId);
+});
+
+	function validateReply(){
+	    if(jQuery.trim(document.getElementById("replyMessage").value).length==0){
+	        alert("<?php echo $this->__('Please fill message'); ?>");
+	    } else{
+	        //document.reply.submit();
+	        var rcId = document.getElementById("rcid").value;
+	        var rmessage = jQuery.trim(document.getElementById("replyMessage").value);
+	        $j.ajax({
+		        async:true,
+		        type: "GET",
+		        data: {message:rmessage, rid:rcId},
+		        url: "<?php echo Mage::getBaseUrl() . 'customerextend/manage/replypmb' ?>",
+		        success: function(data){
+		        	if(data == 1) {
+		        		$j('#replyMessage').val('');
+			        	$j("#user-messages").html("<div style='text-align:center;'><img src='<?php echo $this->getSkinUrl('images/advsearch.gif') ?>' /></div>");
+			            callMessageAjax(rcId);
+		        	} else {
+		        		alert('Message sent failed');
+		        	}
+		        }
+		    });
+	    }
+	}
+	
+	function callMessageAjax(fuserId)
+	{
+		$j.ajax({
+	        async:true,
+	        type: "GET",
+	        data: {uId :fuserId},
+	        url: "<?php echo Mage::getBaseUrl() . 'customerextend/manage/pmb' ?>",
+	        success: function(data){
+	            $j("#user-messages").html(data);
+	            $j("#user-messages").animate({
+			        scrollTop: 100000
+			    }, 300);
+	        }
+	    });
+	}
+</script>

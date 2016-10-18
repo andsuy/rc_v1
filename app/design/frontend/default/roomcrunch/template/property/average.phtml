@@ -1,0 +1,28 @@
+<div class="my-account">
+    <div class="page-title">
+	    <h1><b class="icon_grid edit_id"></b>Price Estimator</h1>
+	</div>
+	<?php if($zipcode = $this->getRequest()->getParam('zipcode')) { ?>
+		<?php if($price = $this->getAveragePrice($zipcode)) { ?>
+			<p class="empty">The average price for this area is <?php echo Mage::helper('core')->currency($price, true, false); ?>.</p>
+		<?php } else { ?>
+			<p class="empty">We have no suggesstion for you.</p>
+		<?php } ?>
+	<?php } ?>
+	<form id="average_price" name="average_price" method="post" action="<?php echo $this->getUrl('property/index/average') ?>">
+	    <div class="fieldset">
+	        <ul class="form-list">
+	            <li class="fields">
+	                <div><label for="zipcode" style="float:none;"><?php echo $this->__('Zipcode'); ?></label></div>
+	                <div><input type="text" value="" name="zipcode" id="zipcode" class="required-field"></div>
+	                <button class="button right" title="Price Estimator" type="submit"><span><span>Price Estimator</span></span></button>
+	            </li>
+	        </ul>
+	    </div>
+	</form>
+</div>
+<script type="text/javascript">
+//<![CDATA[
+var AveragePrice = new VarienForm('average_price', false);
+//]]>
+</script>

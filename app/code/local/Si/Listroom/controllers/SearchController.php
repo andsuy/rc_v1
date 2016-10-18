@@ -1,0 +1,188 @@
+<?php
+class Si_Listroom_SearchController extends Mage_Core_Controller_Front_Action{   
+	public function indexAction() {
+		$this->loadLayout();
+		$this->renderLayout();
+	}
+	
+	public function searchresultAction() {
+	   $this->loadLayout();
+	   $this->renderLayout();
+	}
+	
+	public function mapsearchresultAction() {
+		$positions = $this->getRequest()->getParam('searchPostions');
+	    if(!empty($positions)) {
+			//echo '<pre>'; print_r($positions); echo '</pre>';
+			$this->loadLayout();
+	   		$this->renderLayout();
+	    } else {
+	    	echo 0;
+	    }
+	}
+
+	public function searchresultmapAction() {
+		$address = $this->getRequest()->getParam('searchAddress');
+        $from = $this->getRequest()->getParam('from');
+        $to = $this->getRequest()->getParam('to');
+        $guest = $this->getRequest()->getParam('guest');
+		$amount = $this->getRequest()->getParam('amount');
+        $roomtypeVal = $this->getRequest()->getParam('roomtypeval');
+        $amenityval = $this->getRequest()->getParam('amenityval');
+        $keywordsval = $this->getRequest()->getParam('keywordsval');
+        $pageno = $this->getRequest()->getParam('pageno');
+
+        $data = array("address"=>$address, "from"=>$from, "to"=>$to, "guest"=>$guest, "amount"=>$amount,"pageno"=>$pageno,"roomtypeval"=>$roomtypeVal,"amenityVal"=>$amenityval,"keywordsVal"=>$keywordsval);
+        
+        if(trim($data["address"]) == "e.g. Berlin, Germany"){
+            $data["address"] ="";
+        }
+        
+        $amount = explode("-", $data["amount"]);
+        $minval = $amount[0];
+        $maxval = $amount[1];
+        
+        
+        $collection = Mage::getModel('listroom/listroom')->getCollection()
+        				->addFieldToFilter('status', 1);
+        				
+        if (trim($data["amount"]) != "") {
+	        $collection->addFieldToFilter('budget_max', array('lteq' => $maxval));
+	        $collection->addFieldToFilter('budget_min', array('gteq' => $minval));
+        }
+        
+        
+        if (trim($data["address"]) != "") {
+        	$data["address"] = explode(",", $data["address"]);
+            if (count($data["address"]) > 0) {
+            	$filterOptions = array();
+            	$filterKeys = array();
+            	foreach($data["address"] as $_key){
+            		$filterKeys[] = 'locality';
+            		$filterOptions[] = array('like' => '%' . trim($_key) . '%');
+            	}
+
+            	$filterKeys[] = 'city';
+        		$filterOptions[] = array('in' => $data["address"]);
+        		$filterKeys[] = 'state';
+        		$filterOptions[] = array('in' => $data["address"]);
+        		$filterKeys[] = 'country';
+        		$filterOptions[] = array('in' => $data["address"]);
+        		
+            	$collection->addFieldToFilter($filterKeys, $filterOptions);
+            }
+        }
+        //echo $collection->getSelect(); exit;
+        if (trim($data["roomtypeval"]) != "") {
+            $data["roomtypeval"] = explode(",", $data["roomtypeval"]);
+            if (count($data["roomtypeval"]) > 0) {
+                $collection->addFieldToFilter('property_type', array('in' => array($data["roomtypeval"])));
+            }
+        }
+        
+
+        if (trim($data["amenityVal"]) != "") {
+        	$data["amenityVal"] = explode(",", $data["amenityVal"]);
+            if (count($data["amenityVal"]) > 0) {
+            	$filterOptions = array();
+            	$filterKeys = array();
+            	foreach($data["amenityVal"] as $_key){
+            		$filterKeys[] = 'amenity';
+            		$filterOptions[] = array('like' => '%' . trim($_key) . '%');
+            	}
+
+            	$collection->addFieldToFilter($filterKeys, $filterOptions);
+            }
+        }
+        
+        if (trim($data["keywordsVal"]) != "") {
+        	$data["keywordsVal"] = explode(",", $data["keywordsVal"]);
+            if (count($data["keywordsVal"]) > 0) {
+            	$filterOptions = array();
+            	$filterKeys = array();
+            	foreach($data["keywordsVal"] as $_key){
+            		$filterKeys[] = 'keywords';
+            		$filterOptions[] = array('like' => '%' . trim($_key) . '%');
+            	}
+
+            	$collection->addFieldToFilter($filterKeys, $filterOptions);
+            }
+        }
+        
+        if ($data["guest"] > 0) {
+            $collection->addFieldToFilter('accommodates',array('lteq' => (int)$data["guest"]) );
+        }
+        
+        if(!empty(trim($data["from"]))) {
+	        $fromDate = date('Y-m-d', strtotime($data["from"]));
+	        $collection->getSelect()->where("(`from` >= '". $fromDate ."')");
+        }
+		if(!empty(trim($data["from"]))) {
+	        $toDate = date('Y-m-d', strtotime($data["to"]));
+	        $collection->getSelect()->where("(`to` <= '". $toDate ."')");
+		}
+		//echo $collection->getSelect(); exit;        
+        $collection->setCurPage($data["pageno"])->setPageSize(10);
+        //$collection->setPage($data["pageno"], 10);
+        if($collection->count() > 0) {
+	        echo json_encode($collection->getData());
+        } else {
+        	echo null;
+        }
+	}
+	
+	public function viewAction() {
+        $id = (int)Mage::app()->getRequest()->getParam('id');
+        $this->loadLayout();
+        if (isset($id)) {
+            $room = Mage::getModel('listroom/listroom')->load($id); //getting product model
+            if( $room->getStatus() != 1)
+            {
+	            Mage::getSingleton('core/session')->addError($this->__('Property not found'));
+	            $this->_redirectUrl(Mage::getBaseUrl());  
+	            return;
+            }
+            $this->getLayout()->getBlock('head')->setTitle(htmlspecialchars($room->getTitle()));
+        }
+        $this->renderLayout();
+    }
+       
+    public function maplocationAction() {
+		$address = $this->getRequest()->getParam('searchAddress');
+        $city = $this->getRequest()->getParam('searchCity');
+        $state = $this->getRequest()->getParam('searchState');
+        $country = $this->getRequest()->getParam('searchCountry');
+
+        $lat = '';
+		$lnt = '';
+		try {
+			$q = urlencode($address.','.$city.",".$state.",".$country);
+			$q = str_replace(" ", "+", $q);
+			$geocodeURL = "http://maps.googleapis.com/maps/api/geocode/json?address=$q&sensor=false";
+			$ch = curl_init($geocodeURL);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+			$result = curl_exec($ch);
+			$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+			curl_close($ch);
+			if ($httpCode == 200) {
+			  $geocode = json_decode($result);
+			  $lat = $geocode->results[0]->geometry->location->lat;
+			  $lnt = $geocode->results[0]->geometry->location->lng;
+			  //echo 'Lat=' . $lat . ' || Lnt='. $lnt; exit;
+			  $formatted_address = $geocode->results[0]->formatted_address;
+			  $geo_status = $geocode->status;
+			  $location_type = $geocode->results[0]->geometry->location_type;
+			} else {
+			 $geo_status = "HTTP_FAIL_$httpCode";
+			}
+		} catch (Exception $ex) {
+		}
+
+		$mapLocation = array(
+							'room_lat' => $lat,
+							'room_lnt' => $lnt
+						);
+						
+	    echo json_encode($mapLocation);
+	}
+}

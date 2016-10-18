@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<config>
+  <modules>
+    <Si_Friendlist>
+      <active>true</active>
+      <codePool>local</codePool>
+      <version>0.1.0</version>
+    </Si_Friendlist>
+  </modules>
+</config>

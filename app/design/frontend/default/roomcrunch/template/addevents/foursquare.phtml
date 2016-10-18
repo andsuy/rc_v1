@@ -1,0 +1,76 @@
+<?php if($this->isEnabled() && $this->isDisplayInHomePage()) { ?>
+<?php
+	if($this->getIsHomePage()) {
+		$events = $this->getEventsListHome();
+	} else {
+		$events = $this->getEventsList($this->getRequest()->getParam('id'));
+	}
+	$eventsData = get_object_vars($events);
+	$eventMeta = get_object_vars($eventsData['meta']);
+	$eventResponse = get_object_vars($eventsData['response']);
+	//echo '<pre>'; print_r($eventsData); echo '<pre>';
+?>
+	<ul id="event_lists" class="rounded tab-section event_lists" style="display: block;">
+	<?php if($eventMeta['code'] != 200 || !count($eventResponse['venues'])) { ?>
+		<li class="rounded" style="margin-bottom:0;">
+			<div class="event_network"><?php echo $this->__('No event available.')?></div>
+		</li>
+	<?php } else { ?>
+		<?php if(count($eventResponse['venues']) > 1) { ?>
+			<?php
+			$i = 0;
+			foreach ($eventResponse['venues'] as $_event) {
+			$i++;
+				//echo '111';
+				$eventDetails = get_object_vars($_event);
+				$eventLocation = get_object_vars($eventDetails['location']);
+				if($eventDetails['categories'] > 0) {
+					$eventCategoriesArray = array();
+					foreach($eventDetails['categories'] as $_eventCat) {
+						$eventCat = get_object_vars($_eventCat);
+						$eventCategoriesArray[] = $eventCat['name'];
+					}
+					$categoryTitle = implode(', ', $eventCategoriesArray);
+				}
+				if($eventDetails['contact'] > 0) {
+					$eventContacts = get_object_vars($eventDetails['contact']);
+				}
+				//echo '<pre>'; print_r($eventDetails); echo '</pre>';
+			?>
+				<li class="rounded" <?php if($i==4){ echo 'style="margin-bottom:0;"';}?>>
+		            <div class="event_header">
+		            	<div class="item_image_box">
+		            		<div class="event_image">
+		            			<?php if($eventDetails['url']) { ?><a target="_blank" href="<?php echo $eventDetails['url']; ?>" title="<?php echo $eventDetails['name']; ?>"><?php } ?>
+			            		<?php /* if($eventDetails['image_url']) { ?>
+			            			<?php $imageUrl = str_replace('/ms', '/ls', $eventDetails['image_url']); ?>
+			            			<img src="<?php echo $imageUrl; ?>" alt="<?php echo $eventDetails['name']; ?>" title="<?php echo $eventDetails['name']; ?>" />
+			            		<?php } else { */ ?>
+			            			<img src="<?php echo $this->getSkinUrl('images/no_image_hills.jpg'); ?>" alt="<?php echo $eventDetails['name']; ?>" title="<?php echo $eventDetails['name']; ?>" />
+			            		<?php //} ?>
+		            			<?php if($eventDetails['url']) { ?></a><?php } ?>
+		            		</div>
+		                	<div class="event_details">
+		            			<h1 class="event_title">
+		            			<?php if($eventDetails['url']) { ?><a target="_blank" href="<?php echo $eventDetails['url']; ?>" title="<?php echo $eventDetails['name']; ?>"><?php } ?>
+		            			<span class="summary"><?php echo $eventDetails['name']; ?></span>
+		            			<?php if($eventDetails['url']) { ?></a><?php } ?>
+		            			</h1>
+		            			<h2 class="org_title" style="color:#1D95CB !important;"><?php echo $categoryTitle; ?></h2>
+				                <h2 class="event_time">
+				                	<p style="margin:0;"><?php echo $eventLocation['address']; ?></p>
+				                	<p style="margin:0;"><?php echo $eventLocation['city'] .', '. $eventLocation['state'] .' '. $eventLocation['postalCode']; ?></p>
+				                </h2>
+				                <?php if($eventContacts['formattedPhone']) { ?>
+				                	<div class="event_network"><span class="ph_num"><?php echo $eventContacts['formattedPhone']; ?></span></div>
+				                <?php } ?>
+		                	</div>
+		                	<div class="clearer"></div>
+		                </div>
+		            </div>
+		        </li>
+			<?php } ?>
+		<?php } ?>
+	<?php } ?>
+	</ul>
+<?php } ?>

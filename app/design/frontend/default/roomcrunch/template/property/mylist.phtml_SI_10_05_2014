@@ -1,0 +1,253 @@
+<?php
+//Loggin Customer details
+$customer = Mage::getSingleton('customer/session')->getCustomer();
+$cus_id = $customer->getId();
+$cus_name = $customer->getName();
+?>
+<div id="rooms">
+    <div id="room" class="clearfix">
+        <div id="left_column">
+            <div id="main_content" class="box">
+                <div class="middle">
+                    <ul id="main_content_sub_nav" class="rooms_sub_nav clearfix">
+                        <li id="manageListing" onclick="showListTabs('list_div', 'manageListing')" class="main_link selected"><a href="javascript:void(0)"><?php echo $this->__('Manage Listing'); ?></a></li>
+                        <li id="bookingHistory" onclick="showListTabs('reserve_div', 'bookingHistory')" class="main_link"><a href="javascript:void(0)"><?php echo $this->__('Booking History') ?></a></li>
+                        <li id="manageRequirements" onclick="showListTabs('requirement_div', 'manageRequirements')" class="main_link"><a href="javascript:void(0)"><?php echo $this->__('Manage Requirements'); ?></a></li>
+                        <li id="content_flag"></li>
+                    </ul>
+                    
+                    <!-- Property List Start-->
+                    <?php if($this->getRequest()->getParam('trigger') == 'p') { ?>
+                    	<script type="text/javascript">
+                    		$j(document).ready(function() {
+                    			$j('#manageListing').trigger('click');
+                    		});
+                    	</script>
+                    <?php } ?>
+                    <div id="list_div" class="main_content">
+                        <div class="fieldset floatleft" id="manage_list">
+                            <div class="yourlist_main">
+                            <?php
+			                $model = Mage::getModel('catalog/product');
+			                $todayDate = strtotime(Mage::app()->getLocale()->date()->toString(Varien_Date::DATETIME_INTERNAL_FORMAT));
+			                $todayDate = date('m/d/y', $todayDate);
+			                $products = Mage::getModel('property/property')->getPropertyCollection()
+			                        	->addFieldToFilter(array(array('attribute' => 'user_id', 'eq' => $cus_id)));
+			                        	
+			                if (count($products) >= 1) {
+			                   $c = 0;
+			                    foreach ($products as $_product) {
+			                       $_product = Mage::getModel('catalog/product')->load($_product->getId());
+			                       $baseurl = Mage::getBaseUrl('media');
+			        		?>
+        						<?php
+                                $yourlist = $this->helper('catalog/image')->init($_product, 'image')
+			                                ->constrainOnly(TRUE)
+			                                ->keepAspectRatio(TRUE)
+			                                ->keepFrame(FALSE)
+			                                ->resize(63,null);
+                            	?>                
+                                        <div class="listing_main">
+                                            <?php $papproved = $_product->getPropertyApproved(); if(empty($papproved)) { ?> 
+                                            <span style="color: red; font-size: 14px; text-align: center; display: block;"><?php echo $this->__("Awaiting Admin's Approval"); ?></span>
+                                            <?php } ?>
+                                            <div class="yourlist_img">
+                                                <a href="<?php echo $_product->getProductUrl(); ?>" target="_blank" title="<?php print $this->__('Click To Preview'); ?>">
+                                                <?php if ($_product->getImage()) { ?> <img src="<?php echo $yourlist; ?>" style="width: 63px !important; height: 53px !important" /> <?php } else { ?><img src="<?php echo $this->getSkinUrl('images/np_more_img.gif'); ?>" style="width: 63px !important; height: 53px !important"> <?php } ?>
+                                                </a>
+                                                <div class="listing-info">
+                                                    <div class="clearfix">
+                                                	<a href="<?php echo $_product->getProductUrl(); ?>" target="_blank" title="<?php print $this->__('Click To Preview'); ?>"><span><?php echo $_product->getName(); ?></span></a>
+                                               
+                                                	<div class="slider-widget-container">
+                                                    	<ul>
+                                                        	<li id="active<?php echo $c; ?>" <?php echo ($_product->getStatus() == 2) ? "style='display:block'" : "style='display:none'"; ?>><a title="<?php echo $this->__('click to Visible'); ?>" class="yourlist_imgbtn hide_grid" id="active" name="active" onClick="airbnbActivate('1','<?php echo $c; ?>','hide<?php echo $c; ?>')" ></a></li>
+                                                			<li id="hide<?php echo $c; ?>" <?php echo ($_product->getStatus() == 1) ? "style='display:block'" : "style='display:none'"; ?>><a title="<?php echo $this->__('click to Hidden') ?>" class="yourlist_imgbtn visible_grid" id="deactive" name="active" onClick="airbnbActivate('2','<?php echo $c; ?>','active<?php echo $c; ?>')" ></a><input type="hidden" id="productId<?php echo $c; ?>" value="<?php echo $_product->getId(); ?>" /></li>
+                                                			<li id="loadingSpace<?php echo $c; ?>"></li>
+                                                    	</ul>
+                                                	</div>
+                                                </div>
+                                                    <div class="actions_grid">
+                                                    	<strong class="action_button">
+                                                            <a class="icon_list calender" target="_blank" title="<?php echo $this->__('Calender') ?>" onClick="location.href='<?php echo $this->getUrl('property/index/blockcalendar', array('id' => $_product->getId()))?>'"><?php echo $this->__('Calender') ?></a>
+                                                        </strong>
+                                                        <strong class="action_button">
+                                                        	<a class="icon_list gallery_grid" target="_blank" title="<?php echo $this->__('Gallery') ?>" onClick="location.href='<?php echo $this->getUrl('property/index/gallery', array('id' => $_product->getId()))?>'"><?php echo $this->__('Gallery') ?></a>
+                                                        </strong>
+                                                        <strong class="action_button">
+                                                            <a class="icon_list review_grid" target="_blank" title="<?php echo $this->__('Reviews') ?>" onClick="location.href='<?php echo $this->getUrl('property/index/review', array('id' => $_product->getId()))?>'"><?php echo $this->__('Reviews') ?></a>
+                                                        </strong>
+                                                        <strong class="action_button">
+                                                            <a class="icon_list edit" title="<?php echo $this->__('Edit') ?>" target="_blank" onClick="location.href='<?php echo $this->getUrl('property/index/edit', array('id' => $_product->getId()))?>'"><?php echo $this->__('Edit') ?></a>
+                                                        </strong>
+                                                        <?php $property_delete_option = Mage::getStoreConfig('property_section/custom_email/property_delete_option'); ?>
+                                                        <?php if(empty($property_delete_option)) { ?>
+                                                         <strong class="action_button">
+                                                            <a class="icon_list preview_grid" title="<?php echo $this->__('Delete') ?>" onclick="return confirm('<?php echo $this->__('Are you sure want to delete').'?'; ?>')" 
+                                                               href="<?php echo $this->getUrl('property/index/review', array('id' => $_product->getId()))?>"  ><?php echo $this->__('Delete') ?></a>
+                                                        </strong>
+                                                        <?php } ?>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="clearfix"></div>
+                                <?php $c++; ?>
+                            <?php } ?>
+                           <?php } else { ?>
+                                    <div class="norecords">
+                                        <h2><?php echo $this->__('No Records'); ?></h2>
+                                    </div>
+                                    <div id="newlist">
+                                    	<input type="button" class="innerpage_btn" id="list" name="list" value="<?php echo $this->__('Post new listing'); ?>" onClick="location.href='<?php echo $this->getUrl('property/index/form') ?>'" />
+                                    </div>
+                           <?php } ?>
+                           </div>
+                        </div>
+                    </div>
+                    <!-- Property List Ends-->
+                    
+                    <!-- Booking History Starts-->
+                    <div id="reserve_div" class="main_content norecords" style="display:none;">
+                        <div id="bookingform">
+                            <h2><?php echo $this->__('Booking History'); ?></h2>
+                            <div class="clear"></div>
+                            <?php
+                            	$fromDate = $this->getRequest()->getParam('from');
+                           		$toDate = $this->getRequest()->getParam('to');
+                           	?>
+                            <form action="" method="get">
+                                <div class="booking_from left">
+                                    <h1><?php echo $this->__('From'); ?></h1>
+                                    <input type="text" id="bookingfrom" <?php if ($fromDate){ ?> value="<?php echo $fromDate ?>" <?php } ?> autocomplete="off" name="from" value="yyyy-mm-dd" onfocus="if (this.value=='yyyy-mm-dd') this.value = ''" />
+                                </div>
+                                <div class="booking_to left">
+                                    <h1><?php echo $this->__('To'); ?></h1>
+                                    <input type="text" id="bookingTo" <?php if ($toDate){ ?> value="<?php echo $toDate ?>" <?php } ?> autocomplete="off" name="to" value="yyyy-mm-dd" onfocus="if (this.value=='yyyy-mm-dd') this.value = ''" />
+                                </div>
+                                <div class="booking_btn left">
+                                	<input type="hidden" name="clear" value="0" id="bookclear" />
+                                	<input type="submit" value="<?php echo $this->__('Search'); ?>" class="innerpage_btn" onclick="return bookingSearch();"/>
+                                	<input type="reset" value="<?php echo $this->__('Clear'); ?>" style="margin-left: 5px" class="innerpage_btn" />
+                                </div>
+                            </form>
+                        </div>
+                        <?php
+                        $currencySymbol = Mage::app()->getLocale()->currency(Mage::app()->getStore()->getCurrentCurrencyCode())->getSymbol();
+                        $collection = $this->getBookingHistory();
+                        if (count($collection) > 0) {//Productcollection Start
+                        ?>
+                            
+                            <div style="clear: both"></div>
+                        <?php
+                        } //Productcollection Start
+                        else {
+                        ?>
+                            
+							<div class="norecords">
+                                <h2><?php echo $this->__('No Records'); ?></h2>
+                            </div>
+                        <?php } ?>
+                    </div>
+                    <!-- Booking History Ends-->   
+                    
+                    <!-- Requirements Listing Start -->
+                    <?php if($this->getRequest()->getParam('trigger') == 'r') { ?>
+                    	<script type="text/javascript">
+                    		$j(document).ready(function() {
+                    			$j('#manageRequirements').trigger('click');
+                    		});
+                    	</script>
+                    <?php } ?>
+                    <div id="requirement_div" class="main_content" style="display:none;">
+                    	<div id="manage_roomlist" class="fieldset floatleft">
+							<div class="yourlist_main">
+							<?php
+							$roomCollection = Mage::getModel('listroom/listroom')->getCollection()
+    										->addFieldToFilter('user_id', $cus_id);
+							?>
+							<?php if($roomCollection->count() > 0) { ?>
+								<?php foreach ($roomCollection as $_room) { ?>
+									<div class="listing_main">
+										<div class="yourlist_img">
+											<a title="Click To Preview" target="_blank" href="<?php echo $this->getUrl('listroom/search/view', array('id' => $_room->getId())) ?>"><img src="<?php echo $this->getSkinUrl('images/np_more_img.gif'); ?>" style="width: 63px !important; height: 53px !important"></a>
+											<div class="listing-info">
+												<div class="clearfix">
+                                                    <a title="Click To Preview" target="_blank" href="<?php echo $this->getUrl('listroom/search/view', array('id' => $_room->getId())) ?>"><span><?php echo $_room->getTitle()?></span></a>
+                                                </div>
+                                                <div class="actions_grid">
+                                                	<strong class="action_button">
+                                                        <a onclick="location.href='<?php echo $this->getUrl('listroom/index/edit', array('id' => $_room->getId())) ?>'" target="_blank" title="<?php echo $this->__('Edit')?>" class="icon_list edit"><?php echo $this->__('Edit')?></a>
+                                                    </strong>
+                                                    <strong class="action_button">
+                                                        <a href="<?php echo $this->getUrl('listroom/index/delete', array('id' => $_room->getId())) ?>" onclick="return confirm('Are you sure want to delete?')" title="<?php echo $this->__('Delete')?>" class="icon_list preview_grid"><?php echo $this->__('Delete')?></a>
+                                                    </strong>
+                                                </div>
+											</div>
+										</div>
+									</div>
+									<div class="clearfix"></div>
+								<?php } ?>
+							<?php } else { ?>
+								<div class="norecords">
+                                    <h2><?php echo $this->__('No Records'); ?></h2>
+                                </div>
+                                <div id="newlist">
+                                	<input type="button" class="innerpage_btn" value="<?php echo $this->__('Post new requirement'); ?>" onClick="location.href='<?php echo $this->getUrl('listroom/index/form'); ?>'" />
+                                </div>
+							<?php } ?>
+							</div>
+						</div>
+                    </div>
+                    <!-- Requirements Listing End -->
+                    <div class="clear"></div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    function airbnbActivate(pStatus,buttonId,element)
+    {
+        document.getElementById(element).style.display = "none";
+        document.getElementById("active"+buttonId).style.display ="none";
+        document.getElementById("hide"+buttonId).style.display ="none";
+        document.getElementById("loadingSpace"+buttonId).innerHTML = "<img src='<?php echo $this->getSkinUrl('images/ajax-loader-small.gif'); ?>' />";
+        var productId = document.getElementById("productId"+buttonId).value;
+        
+        $j.ajax({
+	        async:true,
+	        type: "GET",
+	        data: {status:pStatus, buttonid:buttonId, productid:productId},
+	        url: "<?php echo $this->getUrl('property/index/status') ?>",
+	        success: function(data){
+	        	window.location.href = "<?php echo $this->getCurrentUrl() ?>";
+	        }
+	    });
+    }
+    
+    function showListTabs(id,menuName){
+        $j(".main_content").hide();
+        $j(".main_link").removeClass("selected");
+        $j("#"+menuName).addClass("selected");
+        $j("#"+id).show();
+    }
+    
+    $j(function() {
+        $j( "#bookingfrom, #bookingTo" ).datepicker({
+            dateFormat: 'yy-mm-dd',
+            onSelect: function( selectedDate ) {
+            }
+        });
+    });
+    
+    function bookingSearch(){
+        var fromDate = jQuery("#bookingfrom").val();
+        var toDate = jQuery("#bookingTo").val();
+        if(fromDate == "" || fromDate == "yyyy-mm-dd" || toDate == "" || toDate == "yyyy-mm-dd") {
+            alert('Selected date is incorrect, please select the correct date');
+          	return false;
+        }
+    }
+</script>

@@ -1,0 +1,161 @@
+<?php
+$checkin = base64_encode($this->getRequest()->getParam('checkin'));
+$checkout = base64_encode($this->getRequest()->getParam('checkout'));
+$collection = $this->getAdvanceSearchResult();
+$currencySymbol = Mage::app()->getLocale()->currency(Mage::app()->getStore()->getCurrentCurrencyCode())->getSymbol();
+
+/*$positions = $this->getRequest()->getParam('searchPostions');
+if(count($positions) > 0) {
+	$latArray = array();
+	$lntArray = array();
+	foreach ($positions as $_pos) {
+		$posArray = explode(',', $_pos);
+		$latLimit = (strlen(substr(strrchr($posArray[0], "."), 1)) > 7) ? 7 : strlen(substr(strrchr($posArray[0], "."), 1));
+		$lntLimit = (strlen(substr(strrchr($posArray[1], "."), 1)) > 7) ? 7 : strlen(substr(strrchr($posArray[1], "."), 1));
+		$latArray[] = (float)trim(number_format(ltrim($posArray[0],'('), $latLimit, '.', ''));
+		$lntArray[] = (float)trim(number_format(rtrim($posArray[1],')'), $lntLimit, '.', ''));
+	}
+}*/
+
+//echo '<pre>'; print_r($latArray); echo '</pre>';
+//echo '<pre>'; print_r($lntArray); echo '</pre>';
+if (count($collection)) {
+    ?>
+    <ul id="results">
+        <?php
+        $model = Mage::getModel('catalog/product');
+        foreach ($collection as $_product) {
+        	//echo '<br>Lat: '. $_product->getLatitude() . ' Lnt: ' . $_product->getLongitude() . '<br>';
+        	//if(in_array($_product->getLatitude(), $latArray) && in_array($_product->getLongitude(), $lntArray)) {
+            #product url 
+            $product_url = $_product->getProductUrl();
+            if($checkin && $checkout )
+            {   
+               $product_url .='?from='.$checkin.'&to='.$checkout;
+            }
+            ?>
+            <li class="search_result">
+                <div class="search-result-container">
+                <div class="search_image_wrap">
+                    <a class="search-result-pimage" href="<?php echo $product_url; ?>">
+                        <img src="<?php if ($_product->getImage()) { $searchlist = $this->helper('catalog/image')->init($_product, 'image')->constrainOnly(TRUE)->keepAspectRatio(TRUE)->keepFrame(FALSE)->resize(120, 75); echo $searchlist; } else { echo $_product->getImageUrl(); }?>" alt="">
+                    </a>
+                </div>
+                </div>
+                <div class="search-result-right">
+                    <div class="search-result-title-left">
+                        <div class="room_details">
+                                    <h2 class="room_title">
+                                        <a class="name" href="<?php echo $product_url; ?>" >
+                                            <?php echo Mage::helper('property')->getPropertyName($_product->getName());
+                                            ?>
+                                        </a>
+                                    </h2>
+                                    <p class="address">
+                                        <?php
+		                                if(Mage::getStoreConfig('property_section/layout_settings/hide_address')) {
+						                	$addressArray = explode(' ', $_product->getAddress());
+						                	array_shift($addressArray);
+						                	//echo '<pre>'; print_r($addressArray); echo '</pre>';               	
+						                	$displayAddress = implode(' ', $addressArray);
+						                } else {
+						                	$displayAddress = $_product->getAddress();
+						                }
+                                        if (strlen($displayAddress) >= 100)
+                                            echo substr($displayAddress, 0, 100) . "..";
+                                        else
+                                            echo $displayAddress;
+                                        ?>
+                                    </p>
+                        </div>
+                        
+                    </div>
+
+                    <div class="search_price_right">
+                    	<div class="search-result-reviews">
+                            <?php
+                            if (count($reviews)) {
+                                echo count($reviews);
+                                echo " " . $this->__('review(s)') . " ";
+                            }
+
+                            $rating = $this->helper('property')->getCustomerRatings($_product->getId());
+                            $sum = 0;
+                            for ($i = 0; $i < count($rating); $i++) {
+                                $sum +=$rating[$i]["percent"];
+                            }
+                            $avgRating = $sum / count($rating);
+
+                            if ($avgRating > 1 && $avgRating <= 20) {
+                                $this->helper('property')->showratingCode(1);
+                            } else if ($avgRating > 21 && $avgRating <= 40) {
+                                $this->helper('property')->showratingCode(2);
+                            } else if ($avgRating > 41 && $avgRating <= 60) {
+                                $this->helper('property')->showratingCode(3);
+                            } else if ($avgRating > 61 && $avgRating <= 80) {
+                                $this->helper('property')->showratingCode(4);
+                            } else if ($avgRating > 81 && $avgRating <= 100) {
+                                $this->helper('property')->showratingCode(5);
+                            } else {
+                                $this->helper('property')->showratingCode(0);
+                            }
+                            ?>
+                        </div>
+                        <div class="price ">
+                            <div class="price_data">
+                                <div class="currency_with_sup">
+                                    <?php
+                                    $_product = $model->load($_product->getId());
+                                    echo $currencySymbol . round(Mage::helper('directory')->currencyConvert($_product->getPrice(), Mage::app()->getStore()->getBaseCurrencyCode(), Mage::app()->getStore()->getCurrentCurrencyCode()), 0);
+                                    ?>
+                                </div>
+                            </div>
+
+
+                            <div class="price_modifier"><?php echo $this->__('Per night') ?></div>
+                        </div>
+                        <div class="clearer"></div>
+                    </div>
+
+                </div>
+            </li>
+            <?php
+        	//}
+        }
+        ?>
+    </ul>
+    <div class="clear"></div>
+    <div class="search-result-pagination">
+        <ul>
+            <?php
+            $n = ceil($collection->getSize() / 10);
+            if ($n > 1):
+                for ($i = 1; $i <= $n; $i++) {
+                    ?>
+                    <?php if ($this->getRequest()->getParam('pageno') == $i): ?>
+                        <li class="page-current"><?php echo $i; ?></li>
+                    <?php else: ?>
+                        <li class="page" onclick="ajaxSearchResult('<?php echo $i; ?>')"><?php echo $i; ?></li>
+                    <?php
+                    endif;
+                }
+            endif;
+            ?>
+        </ul>
+    </div>          
+
+    <?php
+}
+else {
+?>
+    <div class="no_map_result">
+      <h3>We couldn't find any results that matched your criteria, but tweaking your search may help. Here are some ideas:</h3>
+      <ul>
+        <li>Remove some filters.</li>
+        <li>Expand the area of your search.</li>
+        <li>Search for a city, address, or landmark.</li>
+      </ul>
+    </div>
+<?php
+}
+?>

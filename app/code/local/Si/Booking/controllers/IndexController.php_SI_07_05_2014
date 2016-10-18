@@ -1,0 +1,421 @@
+<?php
+class Si_Booking_IndexController extends Mage_Core_Controller_Front_Action{
+	public function preDispatch() {
+	    parent::preDispatch();
+	    if (!Mage::getSingleton('customer/session')->authenticate($this)) {
+	    	Mage::getSingleton('core/session')->addNotice($this->__('Login to access this section.'));
+	        $this->setFlag('', 'no-dispatch', true);
+	    }
+    }
+    
+    public function manageAction() {
+		$this->loadLayout();
+		$this->renderLayout();
+	}
+    public function propertyAction() {
+		$this->loadLayout();
+		$this->renderLayout();
+	}
+	
+	public function confirmAction() {
+		if(!$this->getRequest()->getParam('id')) {
+			Mage::getSingleton('core/session')->addError($this->__('Item not found.'));
+            $this->_redirect('*/*/manage');
+            return;
+		}
+		//owner permission 
+        $customerId = Mage::getSingleton('customer/session')->getCustomer()->getId();
+        $id = (int)$this->getRequest()->getParam('id');
+        $item = Mage::getModel('booking/booking')->load($id);
+        $customer_id = $item->getHostId();
+        if ($customerId != $customer_id) {
+            Mage::getSingleton('core/session')->addError($this->__("Access denied"));
+            $this->_redirect('*/*/manage');
+            return;
+        }
+        
+        if($item->getBookingStatus() == 1) {
+        	Mage::getSingleton('core/session')->addError($this->__('The booking was confirmed already.'));
+            $this->_redirect('*/*/manage');
+            return;
+        } elseif($item->getBookingStatus() == 2) {
+         	Mage::getSingleton('core/session')->addError($this->__('The booking was cancelled already. It cannot be confirmed now.'));
+            $this->_redirect('*/*/manage');
+            return;
+        }
+        
+        $order = Mage::getModel('sales/order')->load($item->getOrderId());
+        if (!$order->getId()) {
+            $this->_getSession()->addError($this->__('This booking no longer exists.'));
+            $this->_redirect('*/*/manage');
+            return;
+        }
+        if($order) {
+	        $item->setBookingStatus(1);
+	        $item->getUpdatedAt(now());
+	        $item->save();
+	        
+	        //**** mails to guest/host starts ****/
+	        //get guest details
+	        $guest = Mage::getModel('customer/customer')->load($item->getGuestId());
+	        $host = Mage::getModel('customer/customer')->load($item->getHostId());
+	        $storeId = Mage::app()->getStore()->getStoreId();
+	        //Mage::log('Check: ' . $host . ' -- ' . $storeId);
+	        $product = Mage::getModel('catalog/product')->load($item->getProductId());
+	        
+	        if (Mage::helper('sales')->canSendNewOrderEmail($storeId)) {
+	            //Mage::log('test: ');
+		        // Get the destination email addresses to send copies to
+		        $copyTo = Mage::helper('booking')->_getEmails('sales_email/order/copy_to');
+		        $copyMethod = Mage::getStoreConfig('sales_email/order/copy_method', $storeId);
+	
+	            $customerName = $order->getCustomerName();
+	            	        
+	            ////**** mail function to guest starts ****/
+		        // Retrieve corresponding email template id
+	            $templateId = Mage::getStoreConfig('property_section/custom_email/guestbookingconfirm_template', $storeId);
+	
+				try {
+			        $mailer = Mage::getModel('core/email_template_mailer');
+			        $emailInfo = Mage::getModel('core/email_info');
+			        $emailInfo->addTo($guest->getEmail(), $guest->getName());
+			        if ($copyTo && $copyMethod == 'bcc') {
+			            // Add bcc to customer email
+			            foreach ($copyTo as $email) {
+			                $emailInfo->addBcc($email);
+			            }
+			        }
+			        $mailer->addEmailInfo($emailInfo);
+			
+			        // Email copies are sent as separated emails if their copy method is 'copy'
+			        if ($copyTo && $copyMethod == 'copy') {
+			            foreach ($copyTo as $email) {
+			                $emailInfo = Mage::getModel('core/email_info');
+			                $emailInfo->addTo($email);
+			                $mailer->addEmailInfo($emailInfo);
+			            }
+			        }
+			
+			        // Set all required params and send emails
+			        $mailer->setSender(Mage::getStoreConfig('sales_email/order/identity', $storeId));
+			        $mailer->setStoreId($storeId);
+			        $mailer->setTemplateId($templateId);
+			        $mailer->setTemplateParams(array(
+			                'order'        => $order,
+			                'room_name'	   => $product->getName()
+			            )
+			        );
+			        $mailer->send();
+	    	    } catch (Exception $e) {
+				    throw $e;
+				}
+				////**** mail function to guest ends ****/
+				
+				////**** mail function to host starts ****/
+		        // Retrieve corresponding email template id
+	            $templateId = Mage::getStoreConfig('property_section/custom_email/hostbookingconfirm_template', $storeId);
+	
+				try {
+			        $mailer = Mage::getModel('core/email_template_mailer');
+			        $emailInfo = Mage::getModel('core/email_info');
+			        $emailInfo->addTo($host->getEmail(), $host->getName());
+			        if ($copyTo && $copyMethod == 'bcc') {
+			            // Add bcc to customer email
+			            foreach ($copyTo as $email) {
+			                $emailInfo->addBcc($email);
+			            }
+			        }
+			        $mailer->addEmailInfo($emailInfo);
+			
+			        // Email copies are sent as separated emails if their copy method is 'copy'
+			        if ($copyTo && $copyMethod == 'copy') {
+			            foreach ($copyTo as $email) {
+			                $emailInfo = Mage::getModel('core/email_info');
+			                $emailInfo->addTo($email);
+			                $mailer->addEmailInfo($emailInfo);
+			            }
+			        }
+			
+			        // Set all required params and send emails
+			        $mailer->setSender(Mage::getStoreConfig('sales_email/order/identity', $storeId));
+			        $mailer->setStoreId($storeId);
+			        $mailer->setTemplateId($templateId);
+			        $mailer->setTemplateParams(array(
+			                'order'        => $order,
+			                'host_name'    => $host->getFirstname(),
+			                'room_name'	   => $product->getName()
+			            )
+			        );
+			        $mailer->send();
+	    	    } catch (Exception $e) {
+				    throw $e;
+				}
+				////**** mail function to host ends ****/
+				
+	        }
+			//**** mails to guest/host ends ****/
+
+			Mage::getSingleton('core/session')->addSuccess($this->__('The booking has been confirmed successfully. The guest has been updated by mail.'));
+	        $this->_redirect('*/*/manage');
+	        return;
+        }     
+	}
+	
+	public function cancelAction() {
+		if(!$this->getRequest()->getParam('id')) {
+			Mage::getSingleton('core/session')->addError($this->__('Item not found.'));
+            $this->_redirect('*/*/manage');
+            return;
+		}
+		//owner permission 
+        $customerId = Mage::getSingleton('customer/session')->getCustomer()->getId();
+        $id = (int)$this->getRequest()->getParam('id');
+        $item = Mage::getModel('booking/booking')->load($id);
+        $customer_id = $item->getHostId();
+        if ($customerId != $customer_id) {
+            Mage::getSingleton('core/session')->addError($this->__("Access denied"));
+            $this->_redirect('*/*/manage');
+            return;
+        }
+        
+        if($item->getBookingStatus() == 2) {
+        	Mage::getSingleton('core/session')->addError($this->__('The booking was cancelled already.'));
+            $this->_redirect('*/*/manage');
+            return;
+        } elseif($item->getBookingStatus() == 1) {
+         	Mage::getSingleton('core/session')->addError($this->__('The booking was confirmed already. It cannot be cancelled now.'));
+            $this->_redirect('*/*/manage');
+            return;
+        }
+        
+        $order = Mage::getModel('sales/order')->load($item->getOrderId());
+        if (!$order->getId()) {
+            $this->_getSession()->addError($this->__('This booking no longer exists.'));
+            $this->_redirect('*/*/manage');
+            return;
+        }
+        if ($order) {
+            try {
+            	$cancelFlag = 0;
+            	$stateFlag = 0;
+            	if($order->canCancel()) {
+            		try {
+		                $order->cancel()
+		                    ->save();
+		                $cancelFlag = 1;
+		                $stateFlag = 1;
+	                } catch (Exception $e) {
+		            }
+            	} elseif($order->canCreditmemo()) {
+			        try {
+	            		if ($order->hasInvoices()) {
+						    foreach ($order->getInvoiceCollection() as $inv) {
+						        $invoiceId = $inv->getId();
+							   break;
+						    }
+						    $invoice = Mage::getModel('sales/order_invoice')->load($invoiceId);
+	            		}
+	            		
+			            $service = Mage::getModel('sales/service_order', $order);
+			            if ($invoice) {
+			                $creditmemo = $service->prepareInvoiceCreditmemo($invoice, $data);
+			            } else {
+			                $creditmemo = $service->prepareCreditmemo($data);
+			            }
+			            $creditmemo->setState(2);
+			            
+				        $transactionSave = Mage::getModel('core/resource_transaction')
+				            ->addObject($creditmemo)
+				            ->addObject($creditmemo->getOrder());
+				        if ($creditmemo->getInvoice()) {
+				            $transactionSave->addObject($creditmemo->getInvoice());
+				        }
+				        $transactionSave->save();
+				        $order->setStatus('refunded')->save();
+				        $creditmemo->sendEmail(1, '');
+				        
+			        	$cancelFlag = 1;
+			        	$stateFlag = 2;
+			        } catch (Exception $e) {
+			            
+			        }
+            	}
+            	
+                if($cancelFlag) {
+			        if($stateFlag == 1) {
+		            	$item->setBookingStatus(2);
+			        } elseif($stateFlag == 2) {
+			        	$item->setBookingStatus(3);
+			        }
+			        $item->getUpdatedAt(now());
+			        $item->save();
+	                
+		        //**** mails to guest/host/admin starts ****/
+		        //get guest details
+		        $guest = Mage::getModel('customer/customer')->load($item->getGuestId());
+		        $host = Mage::getModel('customer/customer')->load($item->getHostId());
+		        $storeId = Mage::app()->getStore()->getStoreId();
+		        //Mage::log('Check: ' . $host . ' -- ' . $storeId);
+		        $product = Mage::getModel('catalog/product')->load($item->getProductId());
+		        
+		        //if (Mage::helper('sales')->canSendNewOrderEmail($storeId)) {
+		            //Mage::log('test: ');
+			        // Get the destination email addresses to send copies to
+			        $copyTo = Mage::helper('booking')->_getEmails('sales_email/creditmemo/copy_to');
+			        $copyMethod = Mage::getStoreConfig('sales_email/creditmemo/copy_method', $storeId);
+		
+		            $customerName = $order->getCustomerName();
+		            	        
+		            ////**** mail function to guest starts ****/
+			        // Retrieve corresponding email template id
+			        if($stateFlag == 1) {
+		            	$templateId = Mage::getStoreConfig('property_section/custom_email/guestbookingcancel_template', $storeId);
+			        } elseif($stateFlag == 2) {
+			        	$templateId = Mage::getStoreConfig('property_section/custom_email/guestbookingcreditmemo_template', $storeId);
+			        }
+
+					try {
+				        $mailer = Mage::getModel('core/email_template_mailer');
+				        $emailInfo = Mage::getModel('core/email_info');
+				        $emailInfo->addTo($guest->getEmail(), $guest->getName());
+				        if ($copyTo && $copyMethod == 'bcc') {
+				            // Add bcc to customer email
+				            foreach ($copyTo as $email) {
+				                $emailInfo->addBcc($email);
+				            }
+				        }
+				        $mailer->addEmailInfo($emailInfo);
+				
+				        // Email copies are sent as separated emails if their copy method is 'copy'
+				        if ($copyTo && $copyMethod == 'copy') {
+				            foreach ($copyTo as $email) {
+				                $emailInfo = Mage::getModel('core/email_info');
+				                $emailInfo->addTo($email);
+				                $mailer->addEmailInfo($emailInfo);
+				            }
+				        }
+				
+				        // Set all required params and send emails
+				        $mailer->setSender(Mage::getStoreConfig('sales_email/order/identity', $storeId));
+				        $mailer->setStoreId($storeId);
+				        $mailer->setTemplateId($templateId);
+				        $mailer->setTemplateParams(array(
+				                'order'        => $order,
+				                'room_name'	   => $product->getName()
+				            )
+				        );
+				        $mailer->send();
+		    	    } catch (Exception $e) {
+					    throw $e;
+					}
+					////**** mail function to guest ends ****/
+					
+					////**** mail function to host starts ****/
+			        // Retrieve corresponding email template id
+			        if($stateFlag == 1) {
+		            	$templateId = Mage::getStoreConfig('property_section/custom_email/hostbookingcancel_template', $storeId);
+			        } elseif($stateFlag == 2) {
+			        	$templateId = Mage::getStoreConfig('property_section/custom_email/hostbookingcreditmemo_template', $storeId);
+			        }
+								        
+					try {
+				        $mailer = Mage::getModel('core/email_template_mailer');
+				        $emailInfo = Mage::getModel('core/email_info');
+				        $emailInfo->addTo($host->getEmail(), $host->getName());
+				        if ($copyTo && $copyMethod == 'bcc') {
+				            // Add bcc to customer email
+				            foreach ($copyTo as $email) {
+				                $emailInfo->addBcc($email);
+				            }
+				        }
+				        $mailer->addEmailInfo($emailInfo);
+				
+				        // Email copies are sent as separated emails if their copy method is 'copy'
+				        if ($copyTo && $copyMethod == 'copy') {
+				            foreach ($copyTo as $email) {
+				                $emailInfo = Mage::getModel('core/email_info');
+				                $emailInfo->addTo($email);
+				                $mailer->addEmailInfo($emailInfo);
+				            }
+				        }
+				
+				        // Set all required params and send emails
+				        $mailer->setSender(Mage::getStoreConfig('sales_email/order/identity', $storeId));
+				        $mailer->setStoreId($storeId);
+				        $mailer->setTemplateId($templateId);
+				        $mailer->setTemplateParams(array(
+				                'order'        => $order,
+				                'host_name'    => $host->getFirstname(),
+				                'room_name'	   => $product->getName()
+				            )
+				        );
+				        $mailer->send();
+		    	    } catch (Exception $e) {
+					    throw $e;
+					}
+					////**** mail function to host ends ****/
+					
+					////**** mail function to admin starts ****/
+					if($stateFlag == 2) {
+			        	$templateId = Mage::getStoreConfig('property_section/custom_email/adminbookingcreditmemo_template', $storeId);
+			        }
+			        
+					try {
+				        $mailer = Mage::getModel('core/email_template_mailer');
+				        $emailInfo = Mage::getModel('core/email_info');
+				        $emailInfo->addTo(Mage::getStoreConfig('trans_email/ident_general/email', $storeId), Mage::getStoreConfig('trans_email/ident_general/name', $storeId));
+				        if ($copyTo && $copyMethod == 'bcc') {
+				            // Add bcc to customer email
+				            foreach ($copyTo as $email) {
+				                $emailInfo->addBcc($email);
+				            }
+				        }
+				        $mailer->addEmailInfo($emailInfo);
+				
+				        // Email copies are sent as separated emails if their copy method is 'copy'
+				        if ($copyTo && $copyMethod == 'copy') {
+				            foreach ($copyTo as $email) {
+				                $emailInfo = Mage::getModel('core/email_info');
+				                $emailInfo->addTo($email);
+				                $mailer->addEmailInfo($emailInfo);
+				            }
+				        }
+				
+				        // Set all required params and send emails
+				        $mailer->setSender(Mage::getStoreConfig('sales_email/order/identity', $storeId));
+				        $mailer->setStoreId($storeId);
+				        $mailer->setTemplateId($templateId);
+				        $mailer->setTemplateParams(array(
+				                'order'        => $order,
+				                'host_name'    => $host->getFirstname(),
+				                'room_name'	   => $product->getName()
+				            )
+				        );
+				        $mailer->send();
+		    	    } catch (Exception $e) {
+					    throw $e;
+					}
+					////**** mail function to admin ends ****/
+					
+		        //}
+				//**** mails to guest/host/admin ends ****/
+			        if($stateFlag == 1) {
+						Mage::getSingleton('core/session')->addSuccess($this->__('The booking has been cancelled successfully. The guest has been updated by mail.'));
+			        } elseif($stateFlag == 2) {
+						Mage::getSingleton('core/session')->addSuccess($this->__('The booking has been cancelled successfully. The refund request has been initiated to Admin. The guest has been updated by mail.'));
+			        }
+
+                } else {
+                	Mage::getSingleton('core/session')->addError($this->__('The booking can not be cancelled now.'));
+                }
+            } catch (Mage_Core_Exception $e) {
+                Mage::getSingleton('core/session')->addError($e->getMessage());
+            } catch (Exception $e) {
+                Mage::getSingleton('core/session')->addError($this->__('The booking can not be cancelled now.'));
+                Mage::logException($e);
+            }
+            $this->_redirect('*/*/manage');
+            return;
+        } 
+	}
+}

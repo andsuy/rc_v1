@@ -1,0 +1,62 @@
+<?php
+$booking = $this->getBooking();
+$order = $this->getOrder($booking->getOrderId());
+$product = $this->getProduct($booking->getProductId());
+$guest = $this->getGuest($booking->getGuestId());
+?>
+<div class="page-title">
+    <h1><?php echo $this->getTitle($booking->getProductId()) ?></h1>
+</div>
+<div class="booking_view_details">
+	<dl class="item-options">
+		<dt>Property</dt>
+		<dd>
+		<?php if($product->getName()) { ?>
+			<a href="<?php echo $product->getProductUrl() ?>"><?php echo $product->getName() ?></a>
+			<br>
+			<div class="address"><?php echo nl2br($product->getAddress()) . ', ' . $product->getCountry() ?></div>
+		<?php } else { ?>
+			<?php $item = Mage::getModel('sales/order_item')->load($booking->getOrderItemId()); ?>
+			<?php echo $item->getName() ?>
+		<?php } ?>
+		</dd>
+		<dt>Checkin</dt>
+		<dd><?php echo date('n/j/Y', strtotime($booking->getCheckin())) ?></dd>
+		<dt>Checkout</dt>
+		<dd><?php echo date('n/j/Y', strtotime($booking->getCheckout())) ?></dd>
+		<dt>Accommodate</dt>
+		<dd><?php echo $booking->getAccomodates() ?></dd>
+		<dt>Booking Currency</dt>
+		<dd><?php echo $booking->getOrderCurrencyCode() ?></dd>
+		<dt>Order Status</dt>
+		<dd><i><?php echo $order->getStatusLabel() ?></i></dd>
+		<dt>Booking Status</dt>
+		<dd><i><?php echo $this->getBookingStatusLabel($booking->getBookingStatus()) ?></i></dd>
+		<dt>Booking Date</dt>
+		<dd><?php echo date('n/j/Y', strtotime($booking->getCreatedAt())) ?></dd>
+	</dl>
+	<div class="clearer"></div>
+	<?php if($booking->getBookingStatus() == 0 || $booking->getBookingStatus() == 1) { ?>
+    <div class="booking_action_button">
+		<button class="button" type="button" onclick="return processAction('Are you sure to cancel the booking?', '<?php echo $this->getUrl('booking/index/guestcancel', array('id' => $booking->getBookingId()))?>')">Cancel</button>
+    </div>
+	<?php } ?>
+	
+</div>
+<div class="page-button" style="float:right;">
+    <a title="Back" href="<?php echo $this->getUrl('booking/index/manage')?>">Back</a>
+</div>
+<div class="clearer"></div>
+<script type="text/javascript">
+//<![CDATA[
+    var secureCodeForm = new VarienForm('secure_code_form');
+    
+	function processAction(msg, url) {
+		var c = confirm(msg);
+		if(!c) {
+			return false;
+		}
+		window.location.href = url;
+	}
+//]]>
+</script>

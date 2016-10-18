@@ -1,0 +1,36 @@
+<?php $this->setPriceDataObject($this->getSource()) ?>
+<?php if ((float) $this->getSource()->getFeeAmount()): ?>
+    <tr>
+        <td class="label"><?php echo Mage::helper('fee')->formatFee($this->getSource()->getFeeAmount()) ?></td>
+        <td>
+            <?php echo $this->displayPrices($this->getSource()->getBaseFeeAmount(), $this->getSource()->getFeeAmount()); ?>
+        </td>
+    </tr>
+<?php endif; ?>
+
+<?php if ((float) $this->getSource()->getCleaningfeeAmount()): ?>
+    <tr>
+        <td class="label"><?php echo Mage::helper('fee')->formatCleaningfee($this->getSource()->getCleaningfeeAmount()) ?></td>
+        <td>
+            <?php echo $this->displayPrices($this->getSource()->getBaseCleaningfeeAmount(), $this->getSource()->getCleaningfeeAmount()); ?>
+        </td>
+    </tr>
+<?php endif; ?>
+
+<?php if ((float) $this->getSource()->getExtrafeeAmount()): ?>
+    <tr>
+        <td class="label"><?php echo Mage::helper('fee')->formatExtrafee($this->getSource()->getExtrafeeAmount()) ?></td>
+        <td>
+            <?php echo $this->displayPrices($this->getSource()->getBaseExtrafeeAmount(), $this->getSource()->getExtrafeeAmount()); ?>
+        </td>
+    </tr>
+<?php endif; ?>
+
+<?php if ((float) $this->getSource()->getDepositAmount()): ?>
+    <tr>
+        <td class="label"><?php echo Mage::helper('fee')->formatDeposit($this->getSource()->getDepositAmount()) ?></td>
+        <td>
+            <?php echo $this->displayPrices($this->getSource()->getBaseDepositAmount(), $this->getSource()->getDepositAmount()); ?>
+        </td>
+    </tr>
+<?php endif; ?>

@@ -1,0 +1,393 @@
+<?xml version="1.0"?>
+<config>
+	  <tabs>
+		<si_tab translate="label" module="property">
+            <label>Property Settings</label>
+            <sort_order>999</sort_order>
+        </si_tab>
+	  </tabs>
+	  <sections>
+		<property_section  translate="label" module="property">                    
+		<label>Property</label>
+		<tab>si_tab</tab>
+		<frontend_type>text</frontend_type>
+		<sort_order>10</sort_order>
+		<show_in_default>1</show_in_default>
+		<show_in_website>1</show_in_website>
+		<show_in_store>1</show_in_store>            
+					<groups>
+				      <general translate="label"> 
+					  <label>General Settings</label>
+					  <frontend_type>text</frontend_type>
+					  <sort_order>10</sort_order>
+					  <show_in_default>1</show_in_default>
+					  <show_in_website>1</show_in_website>
+					  <show_in_store>1</show_in_store>
+				       <fields>
+                          <enable translate="label">
+                            <label>Enable Property</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>10</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+							<comment>Enable Property</comment>
+                          </enable>
+                          <google_api_key translate="label">
+                            <label>Google API key</label>
+							<frontend_type>text</frontend_type>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+							<comment>Google API key for google map</comment>
+                          </google_api_key>
+                          <processing_fee translate="label">
+                            <label>Order Processing fee</label>
+							<frontend_type>text</frontend_type>
+                            <sort_order>30</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+							<comment>Proccessing fee charged per night on booking property in (%) (goes to admin from customer)</comment>
+                          </processing_fee>
+                          <commission_fee translate="label">
+                            <label>Commission fee</label>
+							<frontend_type>text</frontend_type>
+                            <sort_order>40</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+							<comment>Commission fee charged per night on booking property in (%) (goes to admin from host) </comment>
+                          </commission_fee>
+					   </fields>
+					   </general>
+					   <custom_email translate="label">
+		                    <label>Email Settings</label>
+		                    <sort_order>20</sort_order>
+		                    <show_in_default>1</show_in_default>
+		                    <show_in_website>1</show_in_website>
+		                    <show_in_store>1</show_in_store>
+		                    <fields> 
+		                        <!--property_approval translate="label">
+		                            <label>Property Moderation</label>
+		                            <frontend_type>select</frontend_type>
+		                            <source_model>adminhtml/system_config_source_yesno</source_model>
+		                            <sort_order>18</sort_order>
+		                            <show_in_default>1</show_in_default>
+		                            <show_in_website>1</show_in_website>
+		                            <show_in_store>1</show_in_store>
+		                            <comment>If yes, Property will be posted after admin's approval</comment>
+		                        </property_approval>-->
+		                        <admin_email_id translate="label">
+		                            <label>Admin Email Id</label>
+		                            <frontend_type>select</frontend_type>
+		                            <source_model>adminhtml/system_config_source_email_identity</source_model>
+		                            <sort_order>20</sort_order>
+		                            <show_in_default>1</show_in_default>
+		                            <show_in_website>1</show_in_website>
+		                            <show_in_store>1</show_in_store>
+		                            <comment>Goto System->Configuration->Store Email Addresses</comment>
+		                         </admin_email_id>
+		                         <hostbookinginfo_template translate="label">
+		                            <label>Booking Info to Host Template</label>
+		                            <frontend_type>select</frontend_type>
+		                            <source_model>adminhtml/system_config_source_email_template</source_model>
+		                            <sort_order>21</sort_order>
+		                            <show_in_default>1</show_in_default>
+		                            <show_in_website>1</show_in_website>
+		                            <show_in_store>1</show_in_store>
+		                         </hostbookinginfo_template>
+		                         <guestbookingconfirm_template translate="label">
+		                            <label>Booking Confirmation Guest Template</label>
+		                            <frontend_type>select</frontend_type>
+		                            <source_model>adminhtml/system_config_source_email_template</source_model>
+		                            <sort_order>22</sort_order>
+		                            <show_in_default>1</show_in_default>
+		                            <show_in_website>1</show_in_website>
+		                            <show_in_store>1</show_in_store>
+		                         </guestbookingconfirm_template>
+		                         <hostbookingconfirm_template translate="label">
+		                            <label>Booking Confirmation Host Template</label>
+		                            <frontend_type>select</frontend_type>
+		                            <source_model>adminhtml/system_config_source_email_template</source_model>
+		                            <sort_order>23</sort_order>
+		                            <show_in_default>1</show_in_default>
+		                            <show_in_website>1</show_in_website>
+		                            <show_in_store>1</show_in_store>
+		                         </hostbookingconfirm_template>
+		                         <guestbookingsecurecode_template translate="label">
+		                            <label>Booking Secure Code Guest Template</label>
+		                            <frontend_type>select</frontend_type>
+		                            <source_model>adminhtml/system_config_source_email_template</source_model>
+		                            <sort_order>23</sort_order>
+		                            <show_in_default>1</show_in_default>
+		                            <show_in_website>1</show_in_website>
+		                            <show_in_store>1</show_in_store>
+		                         </guestbookingsecurecode_template>
+		                         <guestbookingcancel_template translate="label">
+		                            <label>Booking Cancel Guest Template</label>
+		                            <frontend_type>select</frontend_type>
+		                            <source_model>adminhtml/system_config_source_email_template</source_model>
+		                            <sort_order>24</sort_order>
+		                            <show_in_default>1</show_in_default>
+		                            <show_in_website>1</show_in_website>
+		                            <show_in_store>1</show_in_store>
+		                         </guestbookingcancel_template>
+		                         <hostbookingcancel_template translate="label">
+		                            <label>Booking Cancel Host Template</label>
+		                            <frontend_type>select</frontend_type>
+		                            <source_model>adminhtml/system_config_source_email_template</source_model>
+		                            <sort_order>25</sort_order>
+		                            <show_in_default>1</show_in_default>
+		                            <show_in_website>1</show_in_website>
+		                            <show_in_store>1</show_in_store>
+		                         </hostbookingcancel_template>
+		                         <guestbookingcreditmemo_template translate="label">
+		                            <label>Booking Credit Memo Guest Template</label>
+		                            <frontend_type>select</frontend_type>
+		                            <source_model>adminhtml/system_config_source_email_template</source_model>
+		                            <sort_order>26</sort_order>
+		                            <show_in_default>1</show_in_default>
+		                            <show_in_website>1</show_in_website>
+		                            <show_in_store>1</show_in_store>
+		                         </guestbookingcreditmemo_template>
+		                         <hostbookingcreditmemo_template translate="label">
+		                            <label>Booking Credit Memo Host Template</label>
+		                            <frontend_type>select</frontend_type>
+		                            <source_model>adminhtml/system_config_source_email_template</source_model>
+		                            <sort_order>27</sort_order>
+		                            <show_in_default>1</show_in_default>
+		                            <show_in_website>1</show_in_website>
+		                            <show_in_store>1</show_in_store>
+		                         </hostbookingcreditmemo_template>
+		                         <adminbookingcreditmemo_template translate="label">
+		                            <label>Booking Credit Memo Admin Template</label>
+		                            <frontend_type>select</frontend_type>
+		                            <source_model>adminhtml/system_config_source_email_template</source_model>
+		                            <sort_order>28</sort_order>
+		                            <show_in_default>1</show_in_default>
+		                            <show_in_website>1</show_in_website>
+		                            <show_in_store>1</show_in_store>
+		                         </adminbookingcreditmemo_template>
+		                         
+		                         <guestbookingcreditmemo_byguest_template translate="label">
+		                            <label>Booking Credit Memo by Guest Guest Template</label>
+		                            <frontend_type>select</frontend_type>
+		                            <source_model>adminhtml/system_config_source_email_template</source_model>
+		                            <sort_order>29</sort_order>
+		                            <show_in_default>1</show_in_default>
+		                            <show_in_website>1</show_in_website>
+		                            <show_in_store>1</show_in_store>
+		                         </guestbookingcreditmemo_byguest_template>
+		                         <hostbookingcreditmemo_byguest_template translate="label">
+		                            <label>Booking Credit Memo by Guest Host Template</label>
+		                            <frontend_type>select</frontend_type>
+		                            <source_model>adminhtml/system_config_source_email_template</source_model>
+		                            <sort_order>30</sort_order>
+		                            <show_in_default>1</show_in_default>
+		                            <show_in_website>1</show_in_website>
+		                            <show_in_store>1</show_in_store>
+		                         </hostbookingcreditmemo_byguest_template>
+		                         <adminbookingcreditmemo_byguest_template translate="label">
+		                            <label>Booking Credit Memo by Guest Admin Template</label>
+		                            <frontend_type>select</frontend_type>
+		                            <source_model>adminhtml/system_config_source_email_template</source_model>
+		                            <sort_order>31</sort_order>
+		                            <show_in_default>1</show_in_default>
+		                            <show_in_website>1</show_in_website>
+		                            <show_in_store>1</show_in_store>
+		                         </adminbookingcreditmemo_byguest_template>
+		                         
+		                         <hostbookingreminder_template translate="label">
+		                            <label>Booking Reminder Host Template</label>
+		                            <frontend_type>select</frontend_type>
+		                            <source_model>adminhtml/system_config_source_email_template</source_model>
+		                            <sort_order>32</sort_order>
+		                            <show_in_default>1</show_in_default>
+		                            <show_in_website>1</show_in_website>
+		                            <show_in_store>1</show_in_store>
+		                         </hostbookingreminder_template>
+
+								 <hostcontact_template translate="label">
+		                            <label>Host contact Template</label>
+		                            <frontend_type>select</frontend_type>
+		                            <source_model>adminhtml/system_config_source_email_template</source_model>
+		                            <sort_order>33</sort_order>
+		                            <show_in_default>1</show_in_default>
+		                            <show_in_website>1</show_in_website>
+		                            <show_in_store>1</show_in_store>
+		                         </hostcontact_template>
+								 <guestcontact_template translate="label">
+		                            <label>Reply Message Template</label>
+		                            <frontend_type>select</frontend_type>
+		                            <source_model>adminhtml/system_config_source_email_template</source_model>
+		                            <sort_order>34</sort_order>
+		                            <show_in_default>1</show_in_default>
+		                            <show_in_website>1</show_in_website>
+		                            <show_in_store>1</show_in_store>
+		                         </guestcontact_template>
+		                         
+								 <roomguestcontact_template translate="label">
+		                            <label>Requirement enquiry guest Template</label>
+		                            <frontend_type>select</frontend_type>
+		                            <source_model>adminhtml/system_config_source_email_template</source_model>
+		                            <sort_order>35</sort_order>
+		                            <show_in_default>1</show_in_default>
+		                            <show_in_website>1</show_in_website>
+		                            <show_in_store>1</show_in_store>
+		                         </roomguestcontact_template>
+		                    </fields>
+		               </custom_email>
+					   <layout_settings translate="label">
+		                    <label>Layout settings</label>
+		                    <comment></comment>
+		                    <sort_order>30</sort_order>
+		                    <show_in_default>1</show_in_default>
+		                    <show_in_website>1</show_in_website>
+		                    <show_in_store>1</show_in_store>
+		                    <fields>
+		                       <display_contactme translate="label">
+		                            <label>Display Contact Me Button in Property details page</label>
+		                            <frontend_type>select</frontend_type>
+		                            <source_model>adminhtml/system_config_source_yesno</source_model>
+		                            <sort_order>1</sort_order>
+		                            <show_in_default>1</show_in_default>
+		                            <show_in_website>1</show_in_website>
+		                            <show_in_store>1</show_in_store>
+		                            <comment>If yes, Contact Me Button will be displayed in Property details page</comment>
+		                        </display_contactme>
+		                        <hide_address translate="label">
+		                            <label>Hide Property Address (Street Number) and Host Lastname</label>
+		                            <frontend_type>select</frontend_type>
+		                            <source_model>adminhtml/system_config_source_yesno</source_model>
+		                            <sort_order>2</sort_order>
+		                            <show_in_default>1</show_in_default>
+		                            <show_in_website>1</show_in_website>
+		                            <show_in_store>1</show_in_store>
+		                            <comment>If yes, Street number of the property address and Host lastname will not be displayed to Guest</comment>
+		                        </hide_address>
+		                        <property_delete translate="label">
+		                            <label>Allow Host to Delete Property</label>
+		                            <frontend_type>select</frontend_type>
+		                            <source_model>adminhtml/system_config_source_yesno</source_model>
+		                            <sort_order>3</sort_order>
+		                            <show_in_default>1</show_in_default>
+		                            <show_in_website>1</show_in_website>
+		                            <show_in_store>1</show_in_store>
+		                            <comment>If yes, Host will be able to delete listed property</comment>
+		                        </property_delete>
+		                        <calender_text translate="label">
+		                            <label>Calender Text</label>
+		                            <frontend_type>editor</frontend_type>
+		                            <sort_order>4</sort_order>
+		                            <show_in_default>1</show_in_default>
+		                            <show_in_website>1</show_in_website>
+		                            <show_in_store>1</show_in_store>
+		                        </calender_text>
+		                    </fields>
+		               </layout_settings>
+					   <custom_banner translate="label">
+			                <label>Homepage Banner Settings</label>
+			                <sort_order>40</sort_order>
+			                <show_in_default>1</show_in_default>
+			                <show_in_website>1</show_in_website>
+			                <show_in_store>1</show_in_store>
+			                <fields>
+			                	<static_banner translate="label">
+		                            <label>Display Static Banner</label>
+		                            <frontend_type>select</frontend_type>
+		                            <source_model>adminhtml/system_config_source_yesno</source_model>
+		                            <sort_order>10</sort_order>
+		                            <show_in_default>1</show_in_default>
+		                            <show_in_website>1</show_in_website>
+		                            <show_in_store>1</show_in_store>
+		                            <comment>If yes, Static banner will display on home page</comment>
+		                        </static_banner>
+		                        <main_banner_image translate="label">
+		                            <label>Main Banner Image</label>
+		                            <frontend_type>image</frontend_type>
+		                            <backend_model>adminhtml/system_config_backend_image</backend_model>
+		                            <upload_dir config="system/filesystem/media" scope_info="1">catalog/product/banner</upload_dir>
+		                            <base_url type="media" scope_info="1">catalog/product/banner</base_url>
+		                            <sort_order>20</sort_order>
+		                            <show_in_default>1</show_in_default>
+		                            <show_in_website>1</show_in_website>
+		                            <show_in_store>1</show_in_store>
+									<comment>Upload home page main banner image</comment>
+		                        </main_banner_image>
+			                    <homepage_banner translate="label">
+			                        <label>Homepage Banner Display</label>
+			                        <frontend_type>select</frontend_type>
+			                        <source_model>Si_Property_Model_Source_Banner</source_model>
+			                        <sort_order>30</sort_order>
+			                        <show_in_default>30</show_in_default>
+			                        <show_in_website>1</show_in_website>
+			                        <show_in_store>1</show_in_store>
+			                        <comment>Select Homepage Banner</comment>
+			                    </homepage_banner>
+			                    <!--<enable_slider_hoster translate="label">
+			                        <label>Display Homepage slider option for host</label>
+			                        <frontend_type>select</frontend_type>
+			                        <source_model>adminhtml/system_config_source_yesno</source_model>
+			                        <sort_order>31</sort_order>
+			                        <show_in_default>1</show_in_default>
+			                        <show_in_website>1</show_in_website>
+			                        <show_in_store>1</show_in_store>
+			                        <comment>If yes, Homepage slider option will be displayed while adding space</comment>
+			                    </enable_slider_hoster>-->
+			                    <banner_count translate="label">
+			                        <label>Number of Properties to be displayed in Banner</label>
+			                        <frontend_type>text</frontend_type>
+			                        <validate>validate-number</validate>
+			                        <sort_order>40</sort_order>
+			                        <show_in_default>1</show_in_default>
+			                        <show_in_website>1</show_in_website>
+			                        <show_in_store>1</show_in_store>
+			                    </banner_count>
+			                </fields>
+			           </custom_banner>
+						<max_min translate="label">
+							<label>Price Slider Search</label>
+							<comment></comment>
+							<sort_order>50</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+							<fields>
+								<min_value translate="label tooltip comment">
+									<label>Minimum Price</label>
+									<frontend_type>text</frontend_type>
+									<sort_order>2</sort_order>
+									<show_in_default>1</show_in_default>
+									
+									<show_in_website>1</show_in_website>
+									
+									<show_in_store>1</show_in_store>
+									<comment>Please enter numeric value in field, for example: 500, min price for price slider</comment>
+								</min_value>
+								<max_value translate="label tooltip comment">
+									<label>Maximium Price</label>
+									<frontend_type>text</frontend_type>
+									<sort_order>3</sort_order>
+									<show_in_default>1</show_in_default>
+									<show_in_website>1</show_in_website>
+									<show_in_store>1</show_in_store>
+									<comment>Please enter numeric value in field, for example: 1000, max price for price slider</comment>
+								</max_value>
+								<range_value translate="label tooltip comment">
+									<label>Starting Range</label>
+									<frontend_type>text</frontend_type>
+									<sort_order>1</sort_order>
+									<show_in_default>1</show_in_default>
+									<show_in_website>1</show_in_website>
+									<show_in_store>1</show_in_store>
+									<comment>Please enter numeric value in field, for example: 700,  starting range greater than min price</comment>
+								</range_value>
+							</fields>
+						</max_min>
+					</groups>
+		</property_section>
+	  </sections>
+</config>
